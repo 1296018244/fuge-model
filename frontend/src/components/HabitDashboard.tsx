@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Trash2, CheckCircle, XCircle, Edit2, Save, Zap, Activity, Check, TrendingUp, ChevronDown, ChevronUp, ClipboardList, Link2, Layers } from 'lucide-react';
+import { Trash2, CheckCircle, XCircle, Edit2, Save, Zap, Activity, Check, TrendingUp, ChevronDown, ChevronUp, ClipboardList, Link2, Layers, Minus, Plus } from 'lucide-react';
 import type { HabitRecipe } from '../types';
 import { getIdentityBadge } from '../utils/identityUtils';
 import DiagnosisModal from './DiagnosisModal';
@@ -39,6 +39,10 @@ const HabitDashboard: React.FC<DashboardProps> = ({ habits, aspirations, onDelet
 
     // Delete Confirmation State
     const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; habitId: string; habitName: string }>({ isOpen: false, habitId: '', habitName: '' });
+
+    // Count Editing State
+    const [editingCountId, setEditingCountId] = useState<string | null>(null);
+    const [editCount, setEditCount] = useState(0);
 
     // Display cleaner for legacy data
     const cleanLegacyText = (text: string) => {
@@ -238,11 +242,53 @@ const HabitDashboard: React.FC<DashboardProps> = ({ habits, aspirations, onDelet
                 {/* Footer: Stats & Actions */}
                 <div className="card-footer">
                     <div className="stats-section">
-                        <div className="stats-badge">
-                            连续: <span className="count">{habit.current_streak || 0}</span>
-                        </div>
+                        {/* 打卡次数编辑 */}
+                        {editingCountId === habit.id ? (
+                            <div className="count-editor">
+                                <button
+                                    className="count-btn"
+                                    onClick={() => setEditCount(Math.max(0, editCount - 1))}
+                                >
+                                    <Minus size={14} />
+                                </button>
+                                <span className="count-value">{editCount}</span>
+                                <button
+                                    className="count-btn"
+                                    onClick={() => setEditCount(editCount + 1)}
+                                >
+                                    <Plus size={14} />
+                                </button>
+                                <button
+                                    className="count-save-btn"
+                                    onClick={() => {
+                                        onUpdate(habit.id, { completed_count: editCount });
+                                        setEditingCountId(null);
+                                    }}
+                                >
+                                    <Check size={14} /> 保存
+                                </button>
+                                <button
+                                    className="count-cancel-btn"
+                                    onClick={() => setEditingCountId(null)}
+                                >
+                                    <XCircle size={14} />
+                                </button>
+                            </div>
+                        ) : (
+                            <div
+                                className="stats-badge clickable"
+                                onClick={() => {
+                                    setEditingCountId(habit.id);
+                                    setEditCount(habit.completed_count || 0);
+                                }}
+                                title="点击调整打卡次数"
+                            >
+                                打卡: <span className="count">{habit.completed_count || 0}</span> |
+                                连续: <span className="count">{habit.current_streak || 0}</span>
+                            </div>
+                        )}
                         {/* Identity Badge (Feature 3) */}
-                        {(() => {
+                        {editingCountId !== habit.id && (() => {
                             const badge = getIdentityBadge(habit.tiny_behavior, habit.completed_count || 0);
                             if (badge) {
                                 return (
