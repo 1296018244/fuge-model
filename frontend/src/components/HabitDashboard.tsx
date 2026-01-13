@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Trash2, CheckCircle, XCircle, Edit2, Save, Zap, Activity, Check, TrendingUp, ChevronDown, ChevronUp, ClipboardList, Link2, Layers } from 'lucide-react';
-import { type HabitRecipe } from '../hooks/useHabits';
+import type { HabitRecipe } from '../types';
 import { getIdentityBadge } from '../utils/identityUtils';
 import DiagnosisModal from './DiagnosisModal';
 import EvolutionModal from './EvolutionModal';

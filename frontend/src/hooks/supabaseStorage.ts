@@ -3,7 +3,7 @@
  * Provides CRUD operations for habits and aspirations in Supabase
  */
 import { supabase, HABITS_TABLE, ASPIRATIONS_TABLE } from '../lib/supabase';
-import type { HabitRecipe } from './useHabits';
+import type { HabitRecipe } from '../types';
 
 
 
@@ -65,13 +65,12 @@ export const cloudHabits = {
                 history: habit.history,
                 celebration_method: habit.celebration_method,
                 backup_time: habit.backup_time,
-                // legacy schema support - verify DB update before uncommenting
-                // habit_type: habit.habit_type,
-                // paused: habit.paused,
-                // current_streak: habit.current_streak,
-                // consecutive_failures: habit.consecutive_failures,
-                // scaled_versions: habit.scaled_versions,
-                // next_habit_id: habit.next_habit_id,
+                habit_type: habit.habit_type,
+                paused: habit.paused,
+                current_streak: habit.current_streak,
+                consecutive_failures: habit.consecutive_failures,
+                scaled_versions: habit.scaled_versions,
+                next_habit_id: habit.next_habit_id,
             }, { onConflict: 'id' });
 
         if (error) {
@@ -104,12 +103,12 @@ export const cloudHabits = {
                 history: h.history,
                 celebration_method: h.celebration_method,
                 backup_time: h.backup_time,
-                // habit_type: h.habit_type,
-                // paused: h.paused,
-                // current_streak: h.current_streak,
-                // consecutive_failures: h.consecutive_failures,
-                // scaled_versions: h.scaled_versions,
-                // next_habit_id: h.next_habit_id,
+                habit_type: h.habit_type,
+                paused: h.paused,
+                current_streak: h.current_streak,
+                consecutive_failures: h.consecutive_failures,
+                scaled_versions: h.scaled_versions,
+                next_habit_id: h.next_habit_id,
             })), { onConflict: 'id' });
 
         if (error) {

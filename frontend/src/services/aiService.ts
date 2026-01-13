@@ -3,23 +3,7 @@
  * Uses OpenAI API directly with settings from Supabase
  */
 import { cloudSettings } from '../hooks/supabaseStorage';
-
-export interface AnalysisResult {
-    behavior: string;
-    score: number;
-    suggestion: string;
-    analysis?: string;
-    recipe?: {
-        anchor: string;
-        tiny_behavior: string;
-    };
-    environment_setup?: string[];
-}
-
-export interface PraiseResult {
-    message: string;
-    emoji: string;
-}
+import type { AnalysisResult, PraiseResult } from '../types';
 
 // Get AI config from cloud
 async function getAIConfig(): Promise<{ apiKey: string; baseUrl: string; model: string }> {
@@ -67,11 +51,21 @@ async function chatCompletion(systemPrompt: string, userMessage: string): Promis
         if (!response.ok) {
             const errorText = await response.text();
             console.error('[AI] API Error:', response.status, errorText);
+
+            let friendlyMessage = `AI 服务请求失败 (${response.status})`;
+            if (response.status === 401) {
+                friendlyMessage = 'API Key 无效或过期，请在设置中检查';
+            } else if (response.status === 429) {
+                friendlyMessage = '请求过于频繁，请稍后再试';
+            } else if (response.status >= 500) {
+                friendlyMessage = 'AI 服务器开小差了，请稍后重试';
+            }
+
             try {
                 const errorJson = JSON.parse(errorText);
-                throw new Error(errorJson.error?.message || `AI 服务请求失败 (${response.status})`);
+                throw new Error(errorJson.error?.message || friendlyMessage);
             } catch {
-                throw new Error(`AI 服务请求失败 (${response.status}): ${errorText.substring(0, 50)}...`);
+                throw new Error(`${friendlyMessage}: ${errorText.substring(0, 50)}...`);
             }
         }
 

@@ -14,12 +14,60 @@
   -webkit-text-size-adjust: 100%;
 
   /* CSS Variables */
-  --accent-primary: #818cf8;
-  --accent-secondary: #c084fc;
+  /* CSS Variables */
+  /* Brand Colors */
+  --color-primary: #6366f1;
+  /* Indigo 500 */
+  --color-primary-hover: #4f46e5;
+  /* Indigo 600 */
+  --color-secondary: #a855f7;
+  /* Purple 500 */
+  --color-accent: #3b82f6;
+  /* Blue 500 */
+
+  /* Functional Colors */
+  --color-success: #10b981;
+  /* Emerald 500 */
+  --color-success-bg: rgba(16, 185, 129, 0.1);
+  --color-danger: #ef4444;
+  /* Red 500 */
+  --color-danger-bg: rgba(239, 68, 68, 0.1);
+  --color-warning: #f59e0b;
+  /* Amber 500 */
+  --color-info: #3b82f6;
+  /* Blue 500 */
+
+  /* Neutrals & Backgrounds */
+  --bg-dark: #0f172a;
+  /* Slate 900 */
+  --bg-card: #1e293b;
+  /* Slate 800 */
+  --bg-card-hover: #334155;
+  /* Slate 700 */
+  --bg-glass: rgba(255, 255, 255, 0.05);
+
+  /* Text */
+  --text-primary: #f8fafc;
+  /* Slate 50 */
+  --text-secondary: #cbd5e1;
+  /* Slate 300 */
+  --text-muted: #94a3b8;
+  /* Slate 400 */
+
+  /* Borders */
+  --border-subtle: rgba(255, 255, 255, 0.05);
+  --border-light: rgba(255, 255, 255, 0.1);
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+
+  /* Legacy/Existing Mappings */
+  --accent-primary: var(--color-primary);
+  --accent-secondary: var(--color-secondary);
   --glass-bg: rgba(255, 255, 255, 0.1);
-  --glass-border: rgba(255, 255, 255, 0.2);
-  --text-primary: #f1f5f9;
-  --text-secondary: #94a3b8;
+  --glass-border: var(--border-light);
   --accent-glow: rgba(129, 140, 248, 0.5);
 }
 

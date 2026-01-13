@@ -12,9 +12,9 @@
 
 .app-container {
   min-height: 100vh;
-  background: #0f172a;
+  background: var(--bg-dark);
   /* Slate 900 */
-  color: #f8fafc;
+  color: var(--text-primary);
   font-family: 'Inter', system-ui, sans-serif;
   display: flex;
   flex-direction: column;
@@ -24,7 +24,7 @@
   height: 60px;
   background: rgba(15, 23, 42, 0.8);
   backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid var(--border-subtle);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -62,7 +62,7 @@
   width: 64px;
   height: 64px;
   border-radius: 50%;
-  background: #6366f1;
+  background: var(--color-primary);
   color: white;
   border: none;
   box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.5);
@@ -75,12 +75,12 @@
 
 .fab-main:hover {
   transform: scale(1.1);
-  background: #4f46e5;
+  background: var(--color-primary-hover);
 }
 
 .fab-main.open {
   transform: rotate(45deg);
-  background: #ef4444;
+  background: var(--color-danger);
 }
 
 .fab-menu {
@@ -92,8 +92,8 @@
 }
 
 .fab-item {
-  background: #1e293b;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
   color: white;
   padding: 0.8rem 1.2rem;
   border-radius: 99px;
@@ -116,7 +116,7 @@
 
 .fab-item:hover {
   transform: translateX(-4px);
-  background: #334155;
+  background: var(--bg-card-hover);
 }
 
 @keyframes slideUp {
@@ -152,14 +152,14 @@
   width: 100%;
   max-width: 1000px;
   height: 85vh;
-  background: #0f172a;
+  background: var(--bg-dark);
   border-radius: 24px;
   position: relative;
   overflow: hidden;
   display: flex;
   flex-direction: column;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--border-light);
 }
 
 .wizard-close-btn {
@@ -167,7 +167,7 @@
   top: 1.5rem;
   right: 1.5rem;
   z-index: 50;
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--border-subtle);
   border: none;
   color: white;
   width: 40px;
@@ -180,12 +180,12 @@
 }
 
 .wizard-close-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--border-light);
 }
 
 /* Settings Button */
 .settings-btn {
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--border-subtle);
   border: none;
   padding: 0.6rem;
   border-radius: 50%;
@@ -194,7 +194,7 @@
 }
 
 .settings-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--border-light);
 }
 
 @keyframes fadeIn {
@@ -209,7 +209,7 @@
 
 /* Weekly Review Banner (Feature 2) */
 .weekly-banner {
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(16, 185, 129, 0.05));
+  background: var(--color-success-bg);
   border-bottom: 1px solid rgba(16, 185, 129, 0.3);
   padding: 0.75rem 2rem;
   display: flex;
@@ -222,7 +222,7 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  color: #10b981;
+  color: var(--color-success);
   font-weight: 500;
 }
 
@@ -242,7 +242,7 @@
 }
 
 .banner-btn.primary {
-  background: #10b981;
+  background: var(--color-success);
   color: white;
 }
 
@@ -252,7 +252,7 @@
 
 .banner-btn.dismiss {
   background: transparent;
-  color: #94a3b8;
+  color: var(--text-muted);
 }
 
 .banner-btn.dismiss:hover {

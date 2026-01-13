@@ -1,42 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { cloudHabits, cloudAspirations } from './supabaseStorage';
-
-export interface HabitRecipe {
-    id: string;
-    // Core Recipe
-    anchor: string;
-    tiny_behavior: string;
-    // Context Data
-    original_behavior: string;
-    motivation: number;
-    ability: number;
-    ai_suggestion: string;
-    environment_setup?: {
-        design_script: string;
-        ready_checklist: string[];
-    };
-    aspiration?: string; // Vision Layer
-    difficulty_level: number; // Evolution Layer
-    evolution_log: { date: string; type: 'creation' | 'upgrade' | 'downgrade'; change: string; note?: string }[];
-    // Stats
-    created_at: string;
-    completed_count: number;
-    last_completed?: string;
-    history?: string[]; // ISO Date Strings
-    // Shine & Prompt Layers (Level 5.3 & 5.4)
-    celebration_method: string;
-    backup_time?: string; // e.g. "20:00"
-    // Pearl Habits (Feature 1)
-    habit_type?: 'regular' | 'pearl'; // regular = normal anchor, pearl = irritation as trigger
-    // Weekly Review (Feature 2)
-    paused?: boolean; // Whether habit is paused/archived
-    current_streak?: number; // Current streak count
-    // Auto-Scaling (Fogg: Scaling Back)
-    consecutive_failures?: number; // Track consecutive failures for auto-scaling
-    scaled_versions?: string[]; // Preset simpler versions of the behavior
-    // Habit Chaining (Fogg: Behavior Sequence)
-    next_habit_id?: string; // ID of habit to prompt after this one completes
-}
+import type { HabitRecipe } from '../types';
 
 export const useHabits = () => {
     const [habits, setHabits] = useState<HabitRecipe[]>([]);

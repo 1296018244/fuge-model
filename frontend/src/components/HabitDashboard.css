@@ -18,12 +18,12 @@
 .dashboard-title {
     font-size: 1.8rem;
     font-weight: 700;
-    color: #f8fafc;
+    color: var(--text-primary);
     margin: 0;
 }
 
 .habit-count {
-    color: #94a3b8;
+    color: var(--text-muted);
     font-size: 0.9rem;
     background: rgba(255, 255, 255, 0.05);
     padding: 0.3rem 0.8rem;
@@ -38,10 +38,10 @@
 
 /* Modern Card Design */
 .habit-card {
-    background: #1e293b;
+    background: var(--bg-card);
     /* Slate-800: Solid, Modern Dark */
     border-radius: 16px;
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border-subtle);
     padding: 1.5rem;
     display: flex;
     flex-direction: column;
@@ -54,8 +54,8 @@
 
 .habit-card:hover {
     transform: translateY(-4px);
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-    border-color: #6366f1;
+    box-shadow: var(--shadow-lg);
+    border-color: var(--color-primary);
     /* Indigo-500 highlight */
 }
 
@@ -79,8 +79,8 @@
 
 .habit-meta-tag {
     font-size: 0.8rem;
-    color: #94a3b8;
-    background: #0f172a;
+    color: var(--text-muted);
+    background: var(--bg-dark);
     /* Slate-900 */
     padding: 0.3rem 0.8rem;
     border-radius: 6px;
@@ -163,7 +163,7 @@
     margin: 0;
     font-size: 1.1rem;
     font-weight: 600;
-    color: #f8fafc;
+    color: var(--text-primary);
     line-height: 1.2;
 }
 
@@ -191,16 +191,16 @@
     align-items: center;
     margin-top: auto;
     padding-top: 1rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    border-top: 1px solid var(--border-subtle);
 }
 
 .stats-badge {
     font-size: 0.85rem;
-    color: #94a3b8;
+    color: var(--text-muted);
 }
 
 .stats-badge .count {
-    color: #f59e0b;
+    color: var(--color-warning);
     /* Amber */
     font-weight: 700;
     font-size: 1rem;
@@ -221,8 +221,8 @@
     padding: 0.25rem 0.5rem;
     border-radius: 20px;
     font-size: 0.75rem;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: var(--bg-glass);
+    border: 1px solid var(--border-light);
 }
 
 .identity-badge .badge-emoji {
@@ -324,7 +324,7 @@
 }
 
 .status-btn.success {
-    background: #6366f1;
+    background: var(--color-primary);
     color: white;
 }
 
@@ -346,13 +346,13 @@
     align-items: center;
     gap: 0.5rem;
     font-size: 0.85rem;
-    color: #94a3b8;
+    color: var(--text-muted);
     margin-bottom: 0.4rem;
 }
 
 .input-group input {
     width: 100%;
-    background: #0f172a;
+    background: var(--bg-dark);
     border: 1px solid #334155;
     color: white;
     padding: 0.8rem;
@@ -362,7 +362,7 @@
 
 .input-group input:focus {
     outline: none;
-    border-color: #6366f1;
+    border-color: var(--color-primary);
 }
 
 /* Empty State */
@@ -379,7 +379,7 @@
 
 .empty-state {
     font-size: 1.2rem;
-    color: #94a3b8;
+    color: var(--text-muted);
 }
 
 /* Environment Setup Section */

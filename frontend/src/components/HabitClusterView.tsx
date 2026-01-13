@@ -1,28 +1,7 @@
 import React, { useMemo } from 'react';
 import { Anchor, Link2, CheckCircle, Circle, Star, TrendingUp } from 'lucide-react';
 import './HabitClusterView.css';
-
-interface Habit {
-    id: string;
-    anchor: string;
-    tiny_behavior: string;
-    completed_count?: number;
-    current_streak?: number;
-    next_habit_id?: string;
-}
-
-interface HabitClusterViewProps {
-    habits: Habit[];
-    onHabitClick?: (habitId: string) => void;
-}
-
-interface Cluster {
-    anchor: string;
-    normalizedAnchor: string;
-    habits: Habit[];
-    totalCompletions: number;
-    chainedCount: number;
-}
+import type { Habit, Cluster } from '../types';
 
 // 标准化锚点（去除细节差异）
 const normalizeAnchor = (anchor: string): string => {

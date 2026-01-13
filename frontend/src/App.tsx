@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react'
+import { useMemo, useCallback } from 'react'
 import confetti from 'canvas-confetti'
 import BehaviorWizard from './components/BehaviorWizard'
 import SettingsModal from './components/SettingsModal'
@@ -12,32 +12,24 @@ import Toast from './components/Toast'
 import Heatmap from './components/Heatmap'
 import { useHabits } from './hooks/useHabits'
 import { useNotifications } from './hooks/useNotifications'
+import { useAppModals } from './hooks/useAppModals'
 import { Plus, Zap, Sparkles, X, Calendar, Loader } from 'lucide-react'
 import './App.css'
 
 function App() {
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-
-  // Creation Modes
-  const [isCreatorOpen, setIsCreatorOpen] = useState(false); // The FAB menu
-  const [isWizardOpen, setIsWizardOpen] = useState(false);
-  const [isManualOpen, setIsManualOpen] = useState(false);
-
-  // Weekly Review
-  const [isWeeklyReviewOpen, setIsWeeklyReviewOpen] = useState(false);
-  const [weeklyBannerDismissed, setWeeklyBannerDismissed] = useState(false);
-
-  // Toast notification state
-  const [toast, setToast] = useState<{ message: string; subMessage?: string; emoji?: string } | null>(null);
-
-  // Scaling suggestion modal state
-  const [scalingModal, setScalingModal] = useState<{ isOpen: boolean; habitId: string; habitName: string; failures: number; suggestion?: string }>({ isOpen: false, habitId: '', habitName: '', failures: 0 });
-
-  // Chain setting modal state
-  const [chainModal, setChainModal] = useState<{ isOpen: boolean; habitId: string }>({ isOpen: false, habitId: '' });
-
-  // Rehearsal modal state (for post-habit-creation landing flow)
-  const [rehearsalHabit, setRehearsalHabit] = useState<{ anchor: string; tiny_behavior: string; celebration_method: string } | null>(null);
+  const {
+    isSettingsOpen, setIsSettingsOpen,
+    isCreatorOpen, setIsCreatorOpen,
+    isWizardOpen, setIsWizardOpen,
+    isManualOpen, setIsManualOpen,
+    isWeeklyReviewOpen, setIsWeeklyReviewOpen,
+    weeklyBannerDismissed, setWeeklyBannerDismissed,
+    toast, setToast,
+    scalingModal, setScalingModal,
+    chainModal, setChainModal,
+    rehearsalHabit, setRehearsalHabit,
+    closeAllCreators
+  } = useAppModals();
 
   const { habits, addHabit, deleteHabit, checkInHabit, updateHabit, evolveHabit, aspirations, addAspiration, pauseHabit, getWeeklyCompletionRate, recordFailure, setHabitChain, isLoading } = useHabits();
 
@@ -206,10 +198,10 @@ function App() {
       <div className="fab-container">
         {isCreatorOpen && (
           <div className="fab-menu">
-            <button className="fab-item manual" onClick={() => { setIsManualOpen(true); setIsCreatorOpen(false); }}>
+            <button className="fab-item manual" onClick={() => { setIsManualOpen(true); closeAllCreators(); }}>
               <Zap size={20} /> 快速添加
             </button>
-            <button className="fab-item wizard" onClick={() => { setIsWizardOpen(true); setIsCreatorOpen(false); }}>
+            <button className="fab-item wizard" onClick={() => { setIsWizardOpen(true); closeAllCreators(); }}>
               <Sparkles size={20} /> AI 向导
             </button>
           </div>

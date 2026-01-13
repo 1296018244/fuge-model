@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
     ComposedChart,
     Line,
@@ -21,28 +21,31 @@ const FoggChart: React.FC<FoggChartProps> = ({ motivation, ability }) => {
     // Let's assume a simplified curve where y = 100 / x or similar inverse relationship
     // In Fogg model: High Motivation allows Low Ability. High Ability allows Low Motivation.
 
-    const curveData = [];
-    for (let x = 1; x <= 10; x += 0.5) {
-        // A simple reciprocal curve to represent the Action Line
-        // If we map 1-10 scale.
-        // Let's say Threshold constant is roughly 20 (on a 10x10 scale area context)
-        // Motivation (y) = Threshold / Ability (x)
-        // Shifted for visual balance
-        const y = 8 / (x * 0.15) * 0.15;
-        // Just drawing a visual curve that looks like Fogg's
-        // Motivation = C / Ability is the standard form
+    const curveData = useMemo(() => {
+        const data = [];
+        for (let x = 1; x <= 10; x += 0.5) {
+            // A simple reciprocal curve to represent the Action Line
+            // If we map 1-10 scale.
+            // Let's say Threshold constant is roughly 20 (on a 10x10 scale area context)
+            // Motivation (y) = Threshold / Ability (x)
+            // Shifted for visual balance
+            const y = 8 / (x * 0.15) * 0.15;
+            // Just drawing a visual curve that looks like Fogg's
+            // Motivation = C / Ability is the standard form
 
-        // Hardcoded visualization points for the "Action Line"
-        // P1(1, 9), P2(9, 1) roughly
-        let m = 0;
-        if (x < 1) m = 10;
-        else m = 5 / (x * 0.5);
+            // Hardcoded visualization points for the "Action Line"
+            // P1(1, 9), P2(9, 1) roughly
+            let m = 0;
+            if (x < 1) m = 10;
+            else m = 5 / (x * 0.5);
 
-        if (m > 10) m = 10;
-        if (m < 0) m = 0;
+            if (m > 10) m = 10;
+            if (m < 0) m = 0;
 
-        curveData.push({ ability: x, motivationLine: m });
-    }
+            data.push({ ability: x, motivationLine: m });
+        }
+        return data;
+    }, []);
 
     // Current user point
     const userPoint = [
