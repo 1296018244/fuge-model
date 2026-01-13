@@ -45,12 +45,15 @@ const ChainSettingModal: React.FC<ChainSettingModalProps> = ({
     };
 
     const handleCreateAndLink = async () => {
-        if (!newAnchor.trim() || !newBehavior.trim() || !onAddHabit) return;
+        if (!newBehavior.trim() || !onAddHabit) return;
 
         setIsSaving(true);
         try {
+            // Auto-set anchor to reference the current habit
+            const autoAnchor = `完成「${currentHabit.tiny_behavior}」之后`;
+
             // Create the new habit with the same aspiration as current habit
-            const newHabitId = await onAddHabit(newAnchor.trim(), newBehavior.trim(), currentHabit.aspiration);
+            const newHabitId = await onAddHabit(autoAnchor, newBehavior.trim(), currentHabit.aspiration);
 
             // Link the current habit to the newly created one
             onSetChain(currentHabit.id, newHabitId);
@@ -120,24 +123,7 @@ const ChainSettingModal: React.FC<ChainSettingModalProps> = ({
                     <div className="create-habit-form" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                         <div className="input-group" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                             <label style={{ color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                <Activity size={16} /> 触发时刻
-                            </label>
-                            <input
-                                value={newAnchor}
-                                onChange={(e) => setNewAnchor(e.target.value)}
-                                placeholder="例如: 完成上一个习惯之后"
-                                style={{
-                                    padding: '0.75rem',
-                                    borderRadius: '8px',
-                                    border: '1px solid #334155',
-                                    background: '#1e293b',
-                                    color: 'white'
-                                }}
-                            />
-                        </div>
-                        <div className="input-group" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                            <label style={{ color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                <Zap size={16} /> 微行为
+                                <Zap size={16} /> 接下来要做什么？
                             </label>
                             <input
                                 value={newBehavior}
@@ -148,10 +134,15 @@ const ChainSettingModal: React.FC<ChainSettingModalProps> = ({
                                     borderRadius: '8px',
                                     border: '1px solid #334155',
                                     background: '#1e293b',
-                                    color: 'white'
+                                    color: 'white',
+                                    fontSize: '1rem'
                                 }}
+                                autoFocus
                             />
                         </div>
+                        <p style={{ fontSize: '0.8rem', color: '#64748b' }}>
+                            触发时刻自动设为「完成 {currentHabit.tiny_behavior} 之后」
+                        </p>
                         <p style={{ fontSize: '0.8rem', color: '#64748b' }}>
                             新习惯将自动归类到「{currentHabit.aspiration || '未分类'}」
                         </p>
@@ -192,7 +183,7 @@ const ChainSettingModal: React.FC<ChainSettingModalProps> = ({
                             <button
                                 className="save-btn"
                                 onClick={handleCreateAndLink}
-                                disabled={!newAnchor.trim() || !newBehavior.trim() || isSaving}
+                                disabled={!newBehavior.trim() || isSaving}
                                 style={{ background: '#10b981' }}
                             >
                                 {isSaving ? '创建中...' : <><Plus size={16} /> 创建并链接</>}
