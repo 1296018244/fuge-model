@@ -299,6 +299,10 @@ function App() {
           currentHabit={habits.find(h => h.id === chainModal.habitId)!}
           allHabits={habits}
           onSetChain={setHabitChain}
+          onAddHabit={async (anchor: string, behavior: string, aspiration?: string) => {
+            const newId = await addHabit(anchor, behavior, undefined, aspiration, '握拳说"Yes!"', undefined, 'regular');
+            return newId;
+          }}
         />
       )}
 

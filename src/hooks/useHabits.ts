@@ -106,7 +106,7 @@ export const useHabits = () => {
     }, [habits]);
 
 
-    const addHabit = async (anchor: string, behavior: string, environment?: any, aspiration?: string, celebration: string = "握拳说“Yes!”", backupTime?: string, habitType: 'regular' | 'pearl' = 'regular') => {
+    const addHabit = async (anchor: string, behavior: string, environment?: any, aspiration?: string, celebration: string = "握拳说“Yes!”", backupTime?: string, habitType: 'regular' | 'pearl' = 'regular'): Promise<string> => {
         const newHabit: HabitRecipe = {
             id: crypto.randomUUID(), // Fix: Supabase requires UUID format, not timestamp string
             anchor,
@@ -140,6 +140,8 @@ export const useHabits = () => {
             alert("❌ 同步到云端失败，请检查网络");
             setHabits(prevHabits); // Revert
         }
+
+        return newHabit.id; // Return the ID for chaining
     };
 
     const evolveHabit = async (id: string, newAnchor: string, newBehavior: string, type: 'upgrade' | 'downgrade' = 'upgrade') => {
