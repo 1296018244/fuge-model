@@ -232,6 +232,97 @@ const HabitDashboard: React.FC<DashboardProps> = ({ habits, aspirations, onDelet
                     </div>
                 </div>
 
+                {/* Chained Habits Display - Show linked habits inline */}
+                {habit.next_habit_id && (() => {
+                    // Build the chain
+                    const chainedHabits: HabitRecipe[] = [];
+                    let currentId = habit.next_habit_id;
+                    const visited = new Set([habit.id]);
+
+                    while (currentId && !visited.has(currentId)) {
+                        const nextHabit = habits.find(h => h.id === currentId);
+                        if (nextHabit) {
+                            chainedHabits.push(nextHabit);
+                            visited.add(currentId);
+                            currentId = nextHabit.next_habit_id;
+                        } else {
+                            break;
+                        }
+                    }
+
+                    if (chainedHabits.length === 0) return null;
+
+                    return (
+                        <div className="chained-habits-section" style={{
+                            marginTop: '0.75rem',
+                            paddingTop: '0.75rem',
+                            borderTop: '1px dashed rgba(99, 102, 241, 0.3)'
+                        }}>
+                            <div style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.5rem',
+                                marginBottom: '0.5rem',
+                                color: '#818cf8',
+                                fontSize: '0.75rem'
+                            }}>
+                                <Link2 size={14} />
+                                <span>习惯链 ({chainedHabits.length} 个后续)</span>
+                            </div>
+                            {chainedHabits.map((chainedHabit, idx) => (
+                                <div key={chainedHabit.id} style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '0.75rem',
+                                    padding: '0.5rem 0.75rem',
+                                    marginLeft: `${(idx + 1) * 1}rem`,
+                                    background: 'rgba(99, 102, 241, 0.08)',
+                                    borderRadius: '8px',
+                                    marginBottom: '0.5rem',
+                                    borderLeft: '3px solid rgba(99, 102, 241, 0.5)'
+                                }}>
+                                    <div style={{
+                                        width: '24px',
+                                        height: '24px',
+                                        borderRadius: '50%',
+                                        background: 'linear-gradient(135deg, #6366f1, #a855f7)',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        fontSize: '0.7rem',
+                                        color: 'white',
+                                        fontWeight: 'bold'
+                                    }}>
+                                        {idx + 2}
+                                    </div>
+                                    <div style={{ flex: 1 }}>
+                                        <div style={{ fontSize: '0.7rem', color: '#94a3b8' }}>
+                                            {cleanLegacyText(chainedHabit.anchor)}
+                                        </div>
+                                        <div style={{ fontSize: '0.85rem', color: '#e2e8f0', fontWeight: 500 }}>
+                                            {cleanLegacyText(chainedHabit.tiny_behavior)}
+                                        </div>
+                                    </div>
+                                    <button
+                                        onClick={() => onCheckIn(chainedHabit.id)}
+                                        style={{
+                                            padding: '0.35rem 0.75rem',
+                                            background: 'rgba(99, 102, 241, 0.2)',
+                                            border: '1px solid rgba(99, 102, 241, 0.4)',
+                                            borderRadius: '6px',
+                                            color: '#818cf8',
+                                            cursor: 'pointer',
+                                            fontSize: '0.75rem'
+                                        }}
+                                    >
+                                        打卡
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    );
+                })()}
+
                 {/* Environment Checklist (Collapsible) */}
                 {habit.environment_setup && habit.environment_setup.ready_checklist && habit.environment_setup.ready_checklist.length > 0 && (
                     <div className="env-checklist-panel">
