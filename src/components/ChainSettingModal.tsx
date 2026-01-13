@@ -33,13 +33,14 @@ const ChainSettingModal: React.FC<ChainSettingModalProps> = ({
     // 过滤掉当前习惯，避免自己链接自己
     const availableHabits = allHabits.filter(h => h.id !== currentHabit.id);
 
-    const handleSave = () => {
-        onSetChain(currentHabit.id, selectedHabitId);
+
+    const handleSave = async () => {
+        await onSetChain(currentHabit.id, selectedHabitId);
         onClose();
     };
 
-    const handleUnlink = () => {
-        onSetChain(currentHabit.id, null);
+    const handleUnlink = async () => {
+        await onSetChain(currentHabit.id, null);
         setSelectedHabitId(null);
         onClose();
     };
