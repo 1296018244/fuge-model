@@ -20,6 +20,11 @@ const calculateClusterHealth = (cluster: Cluster): number => {
     return habitsScore + completionScore + chainScore;
 };
 
+interface HabitClusterViewProps {
+    habits: Habit[];
+    onHabitClick?: (habitId: string) => void;
+}
+
 const HabitClusterView: React.FC<HabitClusterViewProps> = ({ habits, onHabitClick }) => {
     // 按锚点分组
     const clusters = useMemo(() => {

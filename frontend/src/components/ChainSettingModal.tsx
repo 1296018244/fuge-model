@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Link2, X, Check, Unlink } from 'lucide-react';
-import type { HabitRecipe } from '../hooks/useHabits';
+import { Link2, X, Check, Unlink, TrendingUp } from 'lucide-react';
+import type { HabitRecipe } from '../types';
 import './ChainSettingModal.css';
 
 interface ChainSettingModalProps {
@@ -64,9 +64,16 @@ const ChainSettingModal: React.FC<ChainSettingModalProps> = ({
                                     className={`habit-option ${selectedHabitId === habit.id ? 'selected' : ''}`}
                                     onClick={() => setSelectedHabitId(habit.id)}
                                 >
-                                    <span className="option-behavior">{habit.tiny_behavior}</span>
-                                    <span className="option-anchor">在 {habit.anchor} 之后</span>
-                                    {selectedHabitId === habit.id && <Check size={16} className="check-icon" />}
+                                    <div className="option-main">
+                                        <span className="option-behavior">{habit.tiny_behavior}</span>
+                                        <span className="option-anchor">在 {habit.anchor} 之后</span>
+                                    </div>
+                                    <div className="option-stats">
+                                        <span className="option-count" title="打卡次数">
+                                            <TrendingUp size={12} /> {habit.completed_count || 0}
+                                        </span>
+                                        {selectedHabitId === habit.id && <Check size={16} className="check-icon" />}
+                                    </div>
                                 </button>
                             ))}
                         </div>
