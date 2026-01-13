@@ -278,8 +278,8 @@ export const useHabits = () => {
         return { shouldScale: failures >= 3, failures, scaledSuggestion };
     };
 
-    const setHabitChain = (id: string, nextHabitId: string | null) => {
-        updateHabit(id, { next_habit_id: nextHabitId || undefined });
+    const setHabitChain = async (id: string, nextHabitId: string | null) => {
+        await updateHabit(id, { next_habit_id: nextHabitId || undefined });
     };
 
     const setScaledVersions = (id: string, versions: string[]) => {

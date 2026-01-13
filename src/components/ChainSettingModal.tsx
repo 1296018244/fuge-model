@@ -55,8 +55,8 @@ const ChainSettingModal: React.FC<ChainSettingModalProps> = ({
             // Create the new habit with the same aspiration as current habit
             const newHabitId = await onAddHabit(autoAnchor, newBehavior.trim(), currentHabit.aspiration);
 
-            // Link the current habit to the newly created one
-            onSetChain(currentHabit.id, newHabitId);
+            // Link the current habit to the newly created one - AWAIT to ensure persistence
+            await onSetChain(currentHabit.id, newHabitId);
             onClose();
         } catch (e) {
             console.error('Failed to create habit:', e);
