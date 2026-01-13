@@ -50,37 +50,42 @@ export const cloudHabits = {
     },
 
     async upsert(habit: HabitRecipe): Promise<boolean> {
+        const payload = {
+            id: habit.id,
+            anchor: habit.anchor,
+            tiny_behavior: habit.tiny_behavior,
+            original_behavior: habit.original_behavior,
+            motivation: habit.motivation,
+            ability: habit.ability,
+            ai_suggestion: habit.ai_suggestion,
+            environment_setup: habit.environment_setup,
+            aspiration: habit.aspiration,
+            difficulty_level: habit.difficulty_level,
+            evolution_log: habit.evolution_log,
+            completed_count: habit.completed_count,
+            last_completed: habit.last_completed,
+            history: habit.history,
+            celebration_method: habit.celebration_method,
+            backup_time: habit.backup_time,
+            habit_type: habit.habit_type,
+            paused: habit.paused,
+            current_streak: habit.current_streak,
+            consecutive_failures: habit.consecutive_failures,
+            scaled_versions: habit.scaled_versions,
+            next_habit_id: habit.next_habit_id,
+        };
+
+        console.log('[cloudHabits.upsert] Sending to Supabase:', { id: payload.id, next_habit_id: payload.next_habit_id });
+
         const { error } = await supabase
             .from(HABITS_TABLE)
-            .upsert({
-                id: habit.id,
-                anchor: habit.anchor,
-                tiny_behavior: habit.tiny_behavior,
-                original_behavior: habit.original_behavior,
-                motivation: habit.motivation,
-                ability: habit.ability,
-                ai_suggestion: habit.ai_suggestion,
-                environment_setup: habit.environment_setup,
-                aspiration: habit.aspiration,
-                difficulty_level: habit.difficulty_level,
-                evolution_log: habit.evolution_log,
-                completed_count: habit.completed_count,
-                last_completed: habit.last_completed,
-                history: habit.history,
-                celebration_method: habit.celebration_method,
-                backup_time: habit.backup_time,
-                habit_type: habit.habit_type,
-                paused: habit.paused,
-                current_streak: habit.current_streak,
-                consecutive_failures: habit.consecutive_failures,
-                scaled_versions: habit.scaled_versions,
-                next_habit_id: habit.next_habit_id,
-            }, { onConflict: 'id' });
+            .upsert(payload, { onConflict: 'id' });
 
         if (error) {
             console.error('保存习惯失败:', error);
             return false;
         }
+        console.log('[cloudHabits.upsert] Success');
         return true;
     },
 

@@ -223,13 +223,20 @@ export const useHabits = () => {
     };
 
     const updateHabit = async (id: string, updates: Partial<HabitRecipe>) => {
+        console.log('[updateHabit] Called with:', { id, updates });
+
         const target = habits.find(h => h.id === id);
-        if (!target) return;
+        if (!target) {
+            console.error('[updateHabit] Target habit not found:', id);
+            return;
+        }
 
         const updatedHabit = { ...target, ...updates };
+        console.log('[updateHabit] Saving to cloud:', { id: updatedHabit.id, next_habit_id: updatedHabit.next_habit_id });
 
         setHabits(habits.map(h => h.id === id ? updatedHabit : h));
-        await cloudHabits.upsert(updatedHabit);
+        const success = await cloudHabits.upsert(updatedHabit);
+        console.log('[updateHabit] Cloud save result:', success);
     };
 
     const addAspiration = async (newAspiration: string) => {
