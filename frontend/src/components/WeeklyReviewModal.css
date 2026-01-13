@@ -1,0 +1,241 @@
+/* Weekly Review Modal Styles (Feature 2) */
+
+.weekly-review-card {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 24px;
+    width: 90%;
+    max-width: 500px;
+    padding: 2rem;
+    position: relative;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    color: white;
+    animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.weekly-review-card .step-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.weekly-review-card .step-badge {
+    display: inline-block;
+    background: rgba(16, 185, 129, 0.15);
+    color: #10b981;
+    padding: 0.4rem 1rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+.weekly-review-card h2 {
+    margin: 0.5rem 0;
+    font-size: 1.5rem;
+}
+
+.weekly-review-card .subtitle {
+    color: #94a3b8;
+    margin: 0;
+}
+
+/* Highlights Section */
+.highlights-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin: 1.5rem 0;
+}
+
+.highlight-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    position: relative;
+    overflow: hidden;
+}
+
+.highlight-item.rank-1 {
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.1) 0%, rgba(255, 215, 0, 0.02) 100%);
+    border-color: rgba(255, 215, 0, 0.3);
+}
+
+.rank-badge {
+    font-size: 1.5rem;
+    width: 40px;
+    text-align: center;
+}
+
+.highlight-info {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+.highlight-behavior {
+    font-weight: 600;
+    color: #f8fafc;
+}
+
+.highlight-rate {
+    font-size: 0.85rem;
+    color: #10b981;
+}
+
+.champion-glow {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 100px;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 215, 0, 0.1));
+    animation: pulse 2s infinite;
+}
+
+/* Zombies Section */
+.zombies-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin: 1.5rem 0;
+}
+
+.zombie-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem;
+    background: rgba(239, 68, 68, 0.05);
+    border-radius: 12px;
+    border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.zombie-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.zombie-behavior {
+    font-weight: 500;
+    color: #e2e8f0;
+}
+
+.zombie-rate {
+    font-size: 0.8rem;
+    color: #ef4444;
+}
+
+.zombie-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.action-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.4rem 0.8rem;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.action-btn.pause {
+    background: rgba(251, 191, 36, 0.15);
+    color: #fbbf24;
+}
+
+.action-btn.pause:hover {
+    background: rgba(251, 191, 36, 0.25);
+}
+
+.action-btn.delete {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+    padding: 0.4rem;
+}
+
+.action-btn.delete:hover {
+    background: rgba(239, 68, 68, 0.3);
+}
+
+/* Empty States */
+.empty-highlights,
+.empty-zombies {
+    text-align: center;
+    padding: 2rem;
+    color: #94a3b8;
+}
+
+.empty-zombies {
+    background: rgba(16, 185, 129, 0.05);
+    border-radius: 12px;
+    margin: 1.5rem 0;
+}
+
+.congrats-icon {
+    font-size: 3rem;
+    display: block;
+    margin-bottom: 1rem;
+}
+
+/* Footer */
+.weekly-review-card .action-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.weekly-review-card .primary-btn {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+    border: none;
+    padding: 0.8rem 1.5rem;
+    border-radius: 10px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.weekly-review-card .primary-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.weekly-review-card .secondary-btn {
+    background: transparent;
+    color: #94a3b8;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 0.8rem 1.5rem;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+.weekly-review-card .secondary-btn:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        opacity: 0.5;
+    }
+
+    50% {
+        opacity: 1;
+    }
+}

@@ -1,0 +1,479 @@
+/* Modern Dashboard Layout */
+.dashboard-container {
+    width: 100%;
+    height: 100%;
+    padding: 0 1rem;
+    animation: fadeIn 0.4s ease-out;
+}
+
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.dashboard-title {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #f8fafc;
+    margin: 0;
+}
+
+.habit-count {
+    color: #94a3b8;
+    font-size: 0.9rem;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 0.3rem 0.8rem;
+    border-radius: 20px;
+}
+
+.habits-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+    gap: 1.5rem;
+}
+
+/* Modern Card Design */
+.habit-card {
+    background: #1e293b;
+    /* Slate-800: Solid, Modern Dark */
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.habit-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    border-color: #6366f1;
+    /* Indigo-500 highlight */
+}
+
+/* Pearl Habit Card (Feature 1) */
+.habit-card.pearl {
+    background: linear-gradient(135deg, #1e293b 0%, #2e1f47 100%);
+    border-color: rgba(168, 85, 247, 0.3);
+}
+
+.habit-card.pearl:hover {
+    border-color: #a855f7;
+    box-shadow: 0 10px 15px -3px rgba(168, 85, 247, 0.2), 0 4px 6px -2px rgba(0, 0, 0, 0.1);
+}
+
+/* Card Top Bar */
+.card-top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.habit-meta-tag {
+    font-size: 0.8rem;
+    color: #94a3b8;
+    background: #0f172a;
+    /* Slate-900 */
+    padding: 0.3rem 0.8rem;
+    border-radius: 6px;
+}
+
+.card-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+/* Content Flow */
+.behavior-flow {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.flow-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    border-radius: 12px;
+    transition: background 0.2s;
+}
+
+.flow-item.trigger {
+    background: rgba(59, 130, 246, 0.1);
+    /* Blue tint */
+    border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.flow-item.action {
+    background: rgba(16, 185, 129, 0.1);
+    /* Green tint */
+    border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.flow-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+}
+
+.flow-item.trigger .flow-icon {
+    background: #3b82f6;
+    color: white;
+}
+
+.flow-item.action .flow-icon {
+    background: #10b981;
+    color: white;
+}
+
+.flow-text {
+    display: flex;
+    flex-direction: column;
+}
+
+.flow-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    font-weight: 700;
+    color: #94a3b8;
+    margin-bottom: 0.2rem;
+}
+
+.flow-item.trigger .flow-label {
+    color: #93c5fd;
+}
+
+.flow-item.action .flow-label {
+    color: #86efac;
+}
+
+.flow-content {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #f8fafc;
+    line-height: 1.2;
+}
+
+.flow-connector {
+    display: flex;
+    justify-content: center;
+    height: 12px;
+    /* Small gap with line */
+    position: relative;
+    padding-left: 18px;
+    /* Align with center of icon (36px/2) */
+    justify-content: flex-start;
+}
+
+.flow-connector .line {
+    width: 2px;
+    height: 100%;
+    background: #475569;
+}
+
+/* Footer & Actions */
+.card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: auto;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.stats-badge {
+    font-size: 0.85rem;
+    color: #94a3b8;
+}
+
+.stats-badge .count {
+    color: #f59e0b;
+    /* Amber */
+    font-weight: 700;
+    font-size: 1rem;
+}
+
+/* Stats Section Wrapper */
+.stats-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+/* Identity Badge (Feature 3) */
+.identity-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.identity-badge .badge-emoji {
+    font-size: 0.9rem;
+}
+
+.identity-badge .badge-name {
+    font-weight: 600;
+    color: #e2e8f0;
+}
+
+.identity-badge .badge-level {
+    font-size: 0.65rem;
+    opacity: 0.7;
+    margin-left: 0.2rem;
+}
+
+/* Level 1: Bronze */
+.badge-lvl-1 {
+    background: linear-gradient(135deg, rgba(205, 127, 50, 0.15), rgba(205, 127, 50, 0.05));
+    border-color: rgba(205, 127, 50, 0.4);
+}
+
+.badge-lvl-1 .badge-name {
+    color: #cd7f32;
+}
+
+/* Level 2: Silver */
+.badge-lvl-2 {
+    background: linear-gradient(135deg, rgba(192, 192, 192, 0.15), rgba(192, 192, 192, 0.05));
+    border-color: rgba(192, 192, 192, 0.4);
+}
+
+.badge-lvl-2 .badge-name {
+    color: #c0c0c0;
+}
+
+/* Level 3: Gold */
+.badge-lvl-3 {
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(255, 215, 0, 0.08));
+    border-color: rgba(255, 215, 0, 0.5);
+    box-shadow: 0 0 8px rgba(255, 215, 0, 0.3);
+}
+
+.badge-lvl-3 .badge-level {
+    color: #f59e0b;
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(245, 158, 11, 0.1));
+}
+
+/* Chain Indicator (Habit Chaining) */
+.chain-indicator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    background: rgba(99, 102, 241, 0.15);
+    border: 1px solid rgba(99, 102, 241, 0.3);
+    border-radius: 50%;
+    color: #818cf8;
+    cursor: help;
+}
+
+.chain-indicator:hover {
+    background: rgba(99, 102, 241, 0.25);
+}
+
+.badge-lvl-3 .badge-name {
+    color: #ffd700;
+    font-weight: 700;
+}
+
+.footer-actions {
+    display: flex;
+    gap: 0.8rem;
+}
+
+.status-btn {
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.6rem 1rem;
+    transition: all 0.2s;
+}
+
+.status-btn.fail {
+    background: transparent;
+    color: #64748b;
+    padding: 0.6rem;
+}
+
+.status-btn.fail:hover {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+}
+
+.status-btn.success {
+    background: #6366f1;
+    color: white;
+}
+
+.status-btn.success:hover {
+    background: #4f46e5;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+}
+
+/* Edit Form */
+.edit-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.input-group label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    color: #94a3b8;
+    margin-bottom: 0.4rem;
+}
+
+.input-group input {
+    width: 100%;
+    background: #0f172a;
+    border: 1px solid #334155;
+    color: white;
+    padding: 0.8rem;
+    border-radius: 8px;
+    font-size: 1rem;
+}
+
+.input-group input:focus {
+    outline: none;
+    border-color: #6366f1;
+}
+
+/* Empty State */
+.dashboard-container.empty {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    border: 2px dashed #334155;
+    border-radius: 20px;
+    background: rgba(15, 23, 42, 0.4);
+}
+
+.empty-state {
+    font-size: 1.2rem;
+    color: #94a3b8;
+}
+
+/* Environment Setup Section */
+.env-setup-section {
+    margin-top: 1rem;
+    background: rgba(16, 185, 129, 0.05);
+    /* Very subtle green tint */
+    border-radius: 12px;
+    padding: 0.8rem 1rem;
+    border: 1px dashed rgba(16, 185, 129, 0.2);
+}
+
+.env-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.75rem;
+    color: #34d399;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.5rem;
+}
+
+.env-details {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.env-tip {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    color: #cbd5e1;
+    line-height: 1.4;
+}
+
+.env-tip svg {
+    color: #34d399;
+    margin-top: 0.2rem;
+    flex-shrink: 0;
+}
+
+/* Environment Checklist Panel (Feature 4) */
+.env-checklist-panel {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px dashed rgba(255, 255, 255, 0.1);
+}
+
+.env-toggle-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: transparent;
+    border: none;
+    color: #94a3b8;
+    cursor: pointer;
+    font-size: 0.85rem;
+    padding: 0.5rem;
+    border-radius: 6px;
+    width: 100%;
+    transition: all 0.2s;
+}
+
+.env-toggle-btn:hover {
+    background: rgba(99, 102, 241, 0.1);
+    color: #a5b4fc;
+}
+
+.env-checklist-items {
+    list-style: none;
+    padding: 0;
+    margin: 0.75rem 0 0 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.env-checklist-items li {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    color: #cbd5e1;
+    padding: 0.4rem 0.6rem;
+    background: rgba(16, 185, 129, 0.08);
+    border-radius: 6px;
+    border-left: 3px solid #10b981;
+}
+
+.env-checklist-items .check-icon {
+    color: #10b981;
+    flex-shrink: 0;
+}
