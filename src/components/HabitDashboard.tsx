@@ -23,7 +23,7 @@ interface DashboardProps {
 
 const HabitDashboard: React.FC<DashboardProps> = ({ habits, aspirations, onDelete, onCheckIn, onFail, onUpdate, onEvolve, onSetChain }) => {
     const [editingId, setEditingId] = useState<string | null>(null);
-    const [editForm, setEditForm] = useState<{ anchor: string; tiny_behavior: string }>({ anchor: '', tiny_behavior: '' });
+    const [editForm, setEditForm] = useState<{ anchor: string; tiny_behavior: string; aspiration: string }>({ anchor: '', tiny_behavior: '', aspiration: '' });
     const [viewMode, setViewMode] = useState<'grid' | 'vision' | 'cluster'>('vision');
 
     // Diagnosis State
@@ -63,7 +63,7 @@ const HabitDashboard: React.FC<DashboardProps> = ({ habits, aspirations, onDelet
         setEditingId(habit.id);
         const cleanAnchor = cleanLegacyText(habit.anchor);
         const cleanBehavior = cleanLegacyText(habit.tiny_behavior);
-        setEditForm({ anchor: cleanAnchor, tiny_behavior: cleanBehavior });
+        setEditForm({ anchor: cleanAnchor, tiny_behavior: cleanBehavior, aspiration: habit.aspiration || '' });
     };
 
     const saveEdit = (id: string) => {
@@ -118,6 +118,27 @@ const HabitDashboard: React.FC<DashboardProps> = ({ habits, aspirations, onDelet
                                 onChange={(e) => setEditForm({ ...editForm, tiny_behavior: e.target.value })}
                                 placeholder="例如: 我就..."
                             />
+                        </div>
+                        <div className="input-group">
+                            <label><Layers size={16} /> 愿景分类</label>
+                            <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                <select
+                                    value={editForm.aspiration}
+                                    onChange={(e) => setEditForm({ ...editForm, aspiration: e.target.value })}
+                                    style={{ flex: 1, padding: '0.5rem', borderRadius: '6px', border: '1px solid #334155', background: '#1e293b', color: 'white' }}
+                                >
+                                    <option value="">未分类</option>
+                                    {(aspirations || []).map(asp => (
+                                        <option key={asp} value={asp}>{asp}</option>
+                                    ))}
+                                </select>
+                                <input
+                                    placeholder="或输入新分类"
+                                    value={editForm.aspiration}
+                                    onChange={(e) => setEditForm({ ...editForm, aspiration: e.target.value })}
+                                    style={{ flex: 1, padding: '0.5rem', borderRadius: '6px', border: '1px solid #334155', background: '#1e293b', color: 'white' }}
+                                />
+                            </div>
                         </div>
                         <div className="card-actions" style={{ justifyContent: 'flex-end', marginTop: '1rem' }}>
                             <button className="status-btn fail" onClick={() => setEditingId(null)}><XCircle size={20} /></button>
