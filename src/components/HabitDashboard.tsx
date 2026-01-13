@@ -382,11 +382,25 @@ const HabitDashboard: React.FC<DashboardProps> = ({ habits, aspirations, onDelet
         );
     };
 
+    // Compute which habits are "children" in a chain (should not be displayed as separate cards)
+    const childHabitIds = React.useMemo(() => {
+        const ids = new Set<string>();
+        habits.forEach(h => {
+            if (h.next_habit_id) {
+                ids.add(h.next_habit_id);
+            }
+        });
+        return ids;
+    }, [habits]);
+
+    // Filter habits to only show "root" habits (not part of another chain)
+    const rootHabits = habits.filter(h => !childHabitIds.has(h.id));
+
     return (
         <div className="dashboard-container">
             <div className="dashboard-header">
                 <h2 className="dashboard-title">习惯看板</h2>
-                <span className="habit-count">共 {habits.length} 个习惯</span>
+                <span className="habit-count">共 {habits.length} 个习惯 ({rootHabits.length} 个链头)</span>
             </div>
 
             {/* View Toggle */}
@@ -447,13 +461,13 @@ const HabitDashboard: React.FC<DashboardProps> = ({ habits, aspirations, onDelet
                         <HabitClusterView habits={habits} />
                     ) : viewMode === 'grid' ? (
                         <div className="habits-grid">
-                            {habits.map(renderHabitCard)}
+                            {rootHabits.map(renderHabitCard)}
                         </div>
                     ) : (
                         <div className="habits-vision-groups" style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
                             {/* 1. Predefined Aspirations */}
                             {(aspirations || ["未分类"]).map(asp => {
-                                const groupHabits = habits.filter(h => (h.aspiration || "未分类") === asp);
+                                const groupHabits = rootHabits.filter(h => (h.aspiration || "未分类") === asp);
                                 if (groupHabits.length === 0) return null;
                                 return (
                                     <div key={asp} className="vision-group">
@@ -471,7 +485,7 @@ const HabitDashboard: React.FC<DashboardProps> = ({ habits, aspirations, onDelet
                             {/* 2. Dynamic Aspirations (IIFE) */}
                             {(() => {
                                 const known = new Set(aspirations || []);
-                                const others = habits.filter(h => !known.has(h.aspiration || "未分类"));
+                                const others = rootHabits.filter(h => !known.has(h.aspiration || "未分类"));
                                 if (others.length > 0) {
                                     const dynamics: Record<string, HabitRecipe[]> = {};
                                     others.forEach(h => {
