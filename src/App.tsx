@@ -1,5 +1,12 @@
 import { useState, useMemo, useCallback, lazy, Suspense } from 'react'
 import confetti from 'canvas-confetti'
+import SettingsModal from './components/SettingsModal'
+import HabitDashboard from './components/HabitDashboard'
+import ManualEntryModal from './components/ManualEntryModal'
+import WeeklyReviewModal from './components/WeeklyReviewModal'
+import ScalingSuggestionModal from './components/ScalingSuggestionModal'
+import ChainSettingModal from './components/ChainSettingModal'
+import RehearsalModal from './components/RehearsalModal'
 import Toast from './components/Toast'
 // Lazy load heavy components
 const BehaviorWizard = lazy(() => import('./components/BehaviorWizard'))
