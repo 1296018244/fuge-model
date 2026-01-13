@@ -1,0 +1,191 @@
+.anchor-validator {
+    margin-bottom: 1rem;
+}
+
+.anchor-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.anchor-input {
+    width: 100%;
+    /* Reset padding to match other inputs, overriding the old icon spacing */
+    padding: 0.875rem 1rem !important;
+    background: rgba(30, 41, 59, 0.8);
+    border: 2px solid rgba(71, 85, 105, 0.5);
+    border-radius: 0.75rem;
+    color: #e2e8f0;
+    font-size: 1rem;
+    transition: all 0.2s ease;
+    /* Prevent browser icon overlap */
+    background-image: none !important;
+}
+
+/* Hide WebKit autofill icon */
+.anchor-input::-webkit-credentials-auto-fill-button {
+    visibility: hidden;
+    position: absolute;
+    right: 0;
+    pointer-events: none;
+}
+
+.anchor-input:focus {
+    outline: none;
+    border-color: #8b5cf6;
+    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2);
+}
+
+.anchor-input::placeholder {
+    color: #64748b;
+}
+
+.anchor-score-badge {
+    position: absolute;
+    right: 0.75rem;
+    padding: 0.25rem 0.6rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: white;
+    animation: badgeIn 0.3s ease;
+}
+
+@keyframes badgeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.validation-hints {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.hint-item {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.8rem;
+    color: #94a3b8;
+    padding: 0.35rem 0.6rem;
+    border-radius: 0.5rem;
+    background: rgba(30, 41, 59, 0.6);
+    transition: all 0.2s ease;
+}
+
+.hint-item.valid {
+    background: rgba(16, 185, 129, 0.15);
+    color: #10b981;
+}
+
+.hint-item.warning {
+    background: rgba(245, 158, 11, 0.15);
+    color: #f59e0b;
+}
+
+.tips-toggle {
+    margin-left: auto;
+    padding: 0.35rem 0.75rem;
+    background: transparent;
+    border: 1px solid rgba(139, 92, 246, 0.3);
+    border-radius: 0.5rem;
+    color: #a78bfa;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.tips-toggle:hover {
+    background: rgba(139, 92, 246, 0.1);
+    border-color: #8b5cf6;
+}
+
+.anchor-tips {
+    margin-top: 1rem;
+    padding: 1rem;
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(99, 102, 241, 0.05));
+    border: 1px solid rgba(139, 92, 246, 0.2);
+    border-radius: 0.75rem;
+    animation: tipsIn 0.3s ease;
+}
+
+@keyframes tipsIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.anchor-tips h5 {
+    margin: 0 0 0.75rem 0;
+    color: #c4b5fd;
+    font-size: 0.95rem;
+}
+
+.anchor-tips ul {
+    margin: 0;
+    padding-left: 1.25rem;
+    color: #cbd5e1;
+    font-size: 0.85rem;
+    line-height: 1.8;
+}
+
+.anchor-tips li strong {
+    color: #a78bfa;
+}
+
+.tip-examples {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+}
+
+.tip-examples span {
+    padding: 0.35rem 0.75rem;
+    border-radius: 0.5rem;
+    font-size: 0.8rem;
+}
+
+.tip-examples .good {
+    background: rgba(16, 185, 129, 0.15);
+    color: #10b981;
+}
+
+.tip-examples .bad {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+}
+
+.ai-suggestion {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+    padding: 0.75rem 1rem;
+    background: linear-gradient(135deg, rgba(236, 72, 153, 0.1), rgba(167, 139, 250, 0.1));
+    border: 1px solid rgba(236, 72, 153, 0.2);
+    border-radius: 0.75rem;
+    color: #f9a8d4;
+    font-size: 0.85rem;
+}
+
+.ai-suggestion svg {
+    color: #ec4899;
+    flex-shrink: 0;
+}

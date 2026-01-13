@@ -1,9 +1,15 @@
-import { useState, useMemo, useCallback, lazy, Suspense } from 'react'
+import { useState, useMemo, useCallback } from 'react'
 import confetti from 'canvas-confetti'
+import BehaviorWizard from './components/BehaviorWizard'
+import SettingsModal from './components/SettingsModal'
+import HabitDashboard from './components/HabitDashboard'
+import ManualEntryModal from './components/ManualEntryModal'
+import WeeklyReviewModal from './components/WeeklyReviewModal'
+import ScalingSuggestionModal from './components/ScalingSuggestionModal'
+import ChainSettingModal from './components/ChainSettingModal'
+import RehearsalModal from './components/RehearsalModal'
 import Toast from './components/Toast'
-// Lazy load heavy components
-const BehaviorWizard = lazy(() => import('./components/BehaviorWizard'))
-const Heatmap = lazy(() => import('./components/Heatmap'))
+import Heatmap from './components/Heatmap'
 import { useHabits } from './hooks/useHabits'
 import { useNotifications } from './hooks/useNotifications'
 import { Plus, Zap, Sparkles, X, Calendar, Loader } from 'lucide-react'
@@ -175,9 +181,7 @@ function App() {
       <main className="app-main full-width">
         {/* Heatmap Section */}
         <section className="heatmap-section">
-          <Suspense fallback={<div className="p-4 text-center text-gray-500">Loading heatmap...</div>}>
-            <Heatmap habits={habits} />
-          </Suspense>
+          <Heatmap habits={habits} />
         </section>
 
         {/* Full Screen Dashboard */}
@@ -239,16 +243,10 @@ function App() {
             <button className="wizard-close-btn" onClick={() => setIsWizardOpen(false)}>
               <X size={24} />
             </button>
-            <Suspense fallback={
-              <div style={{ display: 'flex', justifyContent: 'center', padding: '40px' }}>
-                <Loader className="spin" size={32} color="#818cf8" />
-              </div>
-            }>
-              <BehaviorWizard onSave={(...args) => {
-                addHabit(...args);
-                setIsWizardOpen(false);
-              }} />
-            </Suspense>
+            <BehaviorWizard onSave={(...args) => {
+              addHabit(...args);
+              setIsWizardOpen(false);
+            }} />
           </div>
         </div>
       )}

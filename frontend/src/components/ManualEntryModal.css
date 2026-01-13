@@ -1,0 +1,275 @@
+.manual-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+    animation: fadeIn 0.2s ease-out;
+}
+
+/* Manual Modal Container - with scroll support */
+.manual-modal {
+    background: linear-gradient(145deg, #1e293b 0%, #0f172a 100%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 1rem;
+    width: 90%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+
+/* Custom scrollbar for modal */
+.manual-modal::-webkit-scrollbar {
+    width: 6px;
+}
+
+.manual-modal::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 3px;
+}
+
+.manual-modal::-webkit-scrollbar-thumb {
+    background: rgba(139, 92, 246, 0.3);
+    border-radius: 3px;
+}
+
+.manual-modal::-webkit-scrollbar-thumb:hover {
+    background: rgba(139, 92, 246, 0.5);
+}
+
+/* Manual Entry Modal Styles */
+.chip-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.chip {
+    padding: 0.3rem 0.8rem;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 1px solid transparent;
+}
+
+.chip:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.chip.active {
+    background: #f59e0b;
+    color: black;
+    font-weight: bold;
+    box-shadow: 0 0 10px rgba(245, 158, 11, 0.3);
+}
+
+.manual-modal-card {
+    background: #1e293b;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    width: 90%;
+    max-width: 400px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    overflow: hidden;
+}
+
+.modal-header {
+    padding: 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.modal-header h2 {
+    margin: 0;
+    font-size: 1.25rem;
+    color: #e2e8f0;
+}
+
+.close-btn {
+    background: transparent;
+    border: none;
+    color: #64748b;
+    cursor: pointer;
+}
+
+.close-btn:hover {
+    color: #f1f5f9;
+}
+
+.modal-body {
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.input-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.input-field label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    color: #94a3b8;
+    font-weight: 600;
+}
+
+/* Shared styles for shape and color */
+.input-field input,
+.input-field select,
+.input-group input,
+.input-group select,
+.manual-modal select {
+    background: #0f172a !important;
+    border: 1px solid #334155 !important;
+    padding: 0.8rem !important;
+    border-radius: 8px !important;
+    color: white !important;
+    font-size: 1rem !important;
+    width: 100% !important;
+}
+
+/* Select specific styles (Arrow icon) */
+.input-field select,
+.input-group select,
+.manual-modal select {
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") !important;
+    background-repeat: no-repeat !important;
+    background-position: right 1rem center !important;
+    background-size: 1rem !important;
+    padding-right: 2.5rem !important;
+    /* Make room for arrow */
+    cursor: pointer !important;
+}
+
+/* Input specific styles (No arrow) */
+.input-field input,
+.input-group input {
+    background-image: none !important;
+    /* Ensure no accidental background */
+}
+
+.input-field input:focus,
+.input-field select:focus,
+.input-group input:focus,
+.input-group select:focus,
+.manual-modal select:focus {
+    outline: none !important;
+    border-color: #6366f1 !important;
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2) !important;
+}
+
+/* Fix option background in dropdown */
+.input-field select option,
+.input-group select option,
+.manual-modal select option {
+    background-color: #0f172a !important;
+    color: white !important;
+    padding: 10px !important;
+}
+
+.modal-footer {
+    padding: 1rem 1.5rem;
+    background: rgba(0, 0, 0, 0.2);
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.8rem;
+}
+
+.cancel-btn {
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #94a3b8;
+    padding: 0.6rem 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.save-btn {
+    background: #6366f1;
+    color: white;
+    padding: 0.6rem 1.2rem;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+}
+
+.save-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Pearl Habits Mode Tabs (Feature 1) */
+.mode-tabs {
+    display: flex;
+    gap: 0;
+    padding: 0 1.5rem;
+    margin-top: -0.5rem;
+}
+
+.mode-tab {
+    flex: 1;
+    padding: 0.7rem 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: none;
+    color: #94a3b8;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+}
+
+.mode-tab:first-child {
+    border-radius: 8px 0 0 8px;
+}
+
+.mode-tab:last-child {
+    border-radius: 0 8px 8px 0;
+}
+
+.mode-tab:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.mode-tab.active {
+    background: #6366f1;
+    color: white;
+    font-weight: 600;
+}
+
+/* Pearl mode specific active state */
+.mode-tab:last-child.active {
+    background: linear-gradient(135deg, #a855f7, #6366f1);
+}
+
+.pearl-hint {
+    margin: 0.75rem 1.5rem;
+    padding: 0.75rem 1rem;
+    background: rgba(168, 85, 247, 0.1);
+    border-left: 4px solid #a855f7;
+    border-radius: 0 8px 8px 0;
+    color: #d8b4fe;
+    font-size: 0.85rem;
+}
