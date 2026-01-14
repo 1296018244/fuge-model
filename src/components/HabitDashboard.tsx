@@ -364,14 +364,14 @@ const HabitDashboard: React.FC<DashboardProps> = ({ habits, aspirations, onDelet
                                             className="count-btn"
                                             onClick={() => setEditCount(Math.max(0, editCount - 1))}
                                         >
-                                            <Minus size={16} />
+                                            −
                                         </button>
                                         <span className="count-value">{editCount}</span>
                                         <button
                                             className="count-btn"
                                             onClick={() => setEditCount(editCount + 1)}
                                         >
-                                            <Plus size={16} />
+                                            +
                                         </button>
                                     </div>
                                 </div>
@@ -382,14 +382,14 @@ const HabitDashboard: React.FC<DashboardProps> = ({ habits, aspirations, onDelet
                                             className="count-btn"
                                             onClick={() => setEditStreak(Math.max(0, editStreak - 1))}
                                         >
-                                            <Minus size={16} />
+                                            −
                                         </button>
                                         <span className="count-value streak">{editStreak}</span>
                                         <button
                                             className="count-btn"
                                             onClick={() => setEditStreak(Math.min(editCount, editStreak + 1))}
                                         >
-                                            <Plus size={16} />
+                                            +
                                         </button>
                                     </div>
                                 </div>
