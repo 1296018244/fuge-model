@@ -2,27 +2,23 @@
  * Cloud-based AI Service
  * Uses OpenAI API directly with settings from Supabase
  */
-import { cloudSettings } from '../hooks/supabaseStorage';
+import { cloudSettings, cloudAIConfigs } from '../hooks/supabaseStorage';
+import type { AnalysisResult, PraiseResult, AIConfig } from '../types';
 
-export interface AnalysisResult {
-    behavior: string;
-    score: number;
-    suggestion: string;
-    analysis?: string;
-    recipe?: {
-        anchor: string;
-        tiny_behavior: string;
-    };
-    environment_setup?: string[];
-}
+// Get AI config from cloud (Prioritize new ai_configs table)
+async function getAIConfig(): Promise<{ apiKey: string; baseUrl: string; model: string, configId?: string }> {
+    // 1. Try get active config from new table
+    const activeConfig = await cloudAIConfigs.getActive();
+    if (activeConfig) {
+        return {
+            apiKey: activeConfig.api_key,
+            baseUrl: activeConfig.base_url,
+            model: activeConfig.model_name,
+            configId: activeConfig.id
+        };
+    }
 
-export interface PraiseResult {
-    message: string;
-    emoji: string;
-}
-
-// Get AI config from cloud
-async function getAIConfig(): Promise<{ apiKey: string; baseUrl: string; model: string }> {
+    // 2. Fallback to legacy settings
     const config = await cloudSettings.fetchAll();
     return {
         apiKey: config.openai_api_key || '',
@@ -31,18 +27,39 @@ async function getAIConfig(): Promise<{ apiKey: string; baseUrl: string; model: 
     };
 }
 
-// Generic chat completion call
-async function chatCompletion(systemPrompt: string, userMessage: string): Promise<string> {
-    const { apiKey, baseUrl, model } = await getAIConfig();
+// 尝试切换到下一个可用配置
+async function switchToNextConfig(currentConfigId?: string): Promise<boolean> {
+    if (!currentConfigId) return false;
 
-    console.log(`[AI] Calling ${baseUrl} with model ${model}`);
+    const allConfigs = await cloudAIConfigs.fetchAll();
+    if (allConfigs.length <= 1) return false;
+
+    // 找到当前配置的索引
+    const currentIndex = allConfigs.findIndex(c => c.id === currentConfigId);
+    let nextIndex = (currentIndex + 1) % allConfigs.length;
+
+    // 简单轮询：找下一个
+    const nextConfig = allConfigs[nextIndex];
+    if (nextConfig && nextConfig.id !== currentConfigId) {
+        console.log(`[AI] Auto-switching to config: ${nextConfig.name}`);
+        await cloudAIConfigs.setActive(nextConfig.id);
+        return true;
+    }
+    return false;
+}
+
+// Generic chat completion call with retry
+async function chatCompletion(systemPrompt: string, userMessage: string, retryCount = 0): Promise<string> {
+    const { apiKey, baseUrl, model, configId } = await getAIConfig();
+
+    console.log(`[AI] Calling ${baseUrl} with model ${model} (Attempt ${retryCount + 1})`);
 
     if (!apiKey) {
         throw new Error('请先在设置中配置 OpenAI API Key');
     }
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 20000); // 20s timeout
+    const timeoutId = setTimeout(() => controller.abort(), 60000); // 60s timeout
 
     try {
         const response = await fetch(`${baseUrl}/chat/completions`, {
@@ -65,47 +82,99 @@ async function chatCompletion(systemPrompt: string, userMessage: string): Promis
         clearTimeout(timeoutId);
 
         if (!response.ok) {
+            // Check for 429 Rate Limit
+            if (response.status === 429 && retryCount < 3) {
+                console.warn(`[AI] Rate limit exceeded (429). Trying next config...`);
+                const switched = await switchToNextConfig(configId);
+                if (switched) {
+                    return chatCompletion(systemPrompt, userMessage, retryCount + 1);
+                }
+            }
+
             const errorText = await response.text();
             console.error('[AI] API Error:', response.status, errorText);
+
+            let friendlyMessage = `AI 服务请求失败 (${response.status})`;
+            if (response.status === 401) {
+                friendlyMessage = 'API Key 无效或过期，请在设置中检查';
+            } else if (response.status === 429) {
+                friendlyMessage = '当前配置请求次数超限，且无其他可用配置';
+            } else if (response.status >= 500) {
+                friendlyMessage = 'AI 服务器开小差了，请稍后重试';
+            }
+
             try {
-                const errorJson = JSON.parse(errorText);
-                throw new Error(errorJson.error?.message || `AI 服务请求失败 (${response.status})`);
-            } catch {
-                throw new Error(`AI 服务请求失败 (${response.status}): ${errorText.substring(0, 50)}...`);
+                const errorJson = JSON.parse(errorText) as import('../types').AIErrorResponse;
+                const backendMsg = errorJson.error && typeof errorJson.error !== 'string'
+                    ? errorJson.error.message
+                    : (typeof errorJson.error === 'string' ? errorJson.error : '');
+
+                throw new Error(backendMsg || friendlyMessage);
+            } catch (e: unknown) {
+                // If it's already the Error we threw above, rethrow it
+                if (e instanceof Error && e.message !== friendlyMessage && !e.message.includes('JSON')) {
+                    throw e;
+                }
+                throw new Error(`${friendlyMessage}: ${errorText.substring(0, 50)}...`);
             }
         }
 
-        const data = await response.json();
+        const data = await response.json() as import('../types').AIChatCompletionResponse;
         const content = data.choices?.[0]?.message?.content;
 
         if (!content) {
             console.warn('[AI] Empty response content:', data);
-            throw new Error('AI 返回了空内容');
+
+            // Check for provider specific errors (e.g. iflow.cn / siliconflow)
+            const statusStr = String(data.status || '');
+            if ((data.status && data.msg) || statusStr === '435') {
+                const msg = data.msg || (data.error ? JSON.stringify(data.error) : 'Unknown Error');
+                const isModelError = msg.includes('Model not support') || statusStr === '435';
+
+                if (isModelError) {
+                    console.warn(`[AI] Model error detected (${msg}). Trying next config...`);
+                    const switched = await switchToNextConfig(configId);
+                    if (switched) {
+                        return chatCompletion(systemPrompt, userMessage, retryCount + 1);
+                    }
+                    throw new Error(`AI 服务商报错: ${msg} (请检查模型名称是否正确)`);
+                }
+                throw new Error(`AI 服务商报错: ${msg}`);
+            }
+
+            // Check generic 'error' field in 200 OK response
+            if (data.error) {
+                const errorMsg = typeof data.error === 'string' ? data.error : (data.error.message || JSON.stringify(data.error));
+                throw new Error(`AI API 报错: ${errorMsg}`);
+            }
+
+            throw new Error('AI 返回了空内容，且无明确错误信息');
         }
 
         return content;
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         clearTimeout(timeoutId);
         console.error('[AI] Request Failed:', error);
 
-        if (error.name === 'AbortError') {
-            throw new Error('AI 请求超时 (20秒)，请检查网络或稍后重试');
+        if (error instanceof Error) {
+            if (error.name === 'AbortError') {
+                throw new Error('AI 请求超时 (60秒)，请检查网络或稍后重试');
+            }
+            if (error.message === 'Failed to fetch') {
+                throw new Error('无法连接到 AI 服务器，请检查网络或 Base URL 设置');
+            }
+            throw error;
         }
-
-        if (error.message === 'Failed to fetch') {
-            throw new Error('无法连接到 AI 服务器，请检查网络或 Base URL 设置');
-        }
-
-        throw error;
+        throw new Error(String(error));
     }
 }
 
 // Helper to clean markdown formatting from JSON string
 function cleanJsonResponse(str: string): string {
     if (!str) return '{}';
-    // Remove ```json ... ``` or just ``` ... ```
-    let cleaned = str.replace(/```json\s*|\s*```/g, '').replace(/```/g, '');
+    // Remove markdown code blocks: ```json, ``` json, ````json, etc. (any backticks, optional space, optional language tag)
+    let cleaned = str.replace(/`{3,}\s*json\s*/gi, '').replace(/\s*`{3,}/g, '');
     // Sometimes there's explanation text before/after, try to find the first { and last }
     const firstBrace = cleaned.indexOf('{');
     const lastBrace = cleaned.lastIndexOf('}');
@@ -181,7 +250,7 @@ export const diagnoseFailure = async (habit: any, reason: string): Promise<any> 
 1. 诊断结果
 2. 一个更简单/更适合的新方案
 
-以JSON格式回复：
+以纯JSON格式回复（不要Markdown格式）：
 {
   "diagnosis": "对失败原因的简短诊断",
   "new_plan": {
@@ -204,8 +273,25 @@ export const diagnoseFailure = async (habit: any, reason: string): Promise<any> 
 
 失败原因: ${reasonMap[reason] || reason}`;
 
-    const response = await chatCompletion(systemPrompt, userMessage);
-    return JSON.parse(response);
+    let response = '';
+    try {
+        response = await chatCompletion(systemPrompt, userMessage);
+        const cleaned = cleanJsonResponse(response);
+        console.log('[AI] Diagnose Raw Response:', response);
+        console.log('[AI] Diagnose Cleaned Response:', cleaned);
+        return JSON.parse(cleaned);
+    } catch (e: any) {
+        console.error('[AI] Diagnose Error:', e);
+
+        // Fallback for JSON parse errors
+        if (e.message?.includes('JSON') || e.message?.includes('Unexpected')) {
+            return {
+                diagnosis: `AI返回格式异常，请重试。原始回复: ${response.substring(0, 100)}...`,
+                new_plan: null
+            };
+        }
+        throw e;
+    }
 };
 
 // Praise for celebrations

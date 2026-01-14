@@ -1,3 +1,4 @@
+// Force HMR Update
 import { useState, useMemo, useCallback, lazy, Suspense } from 'react'
 import confetti from 'canvas-confetti'
 import SettingsModal from './components/SettingsModal'

@@ -3,7 +3,7 @@
  * Provides CRUD operations for habits and aspirations in Supabase
  */
 import { supabase, HABITS_TABLE, ASPIRATIONS_TABLE } from '../lib/supabase';
-import type { HabitRecipe } from './useHabits';
+import type { HabitRecipe } from '../types';
 
 
 
@@ -42,7 +42,6 @@ export const cloudHabits = {
             habit_type: h.habit_type || 'regular',
             paused: h.paused || false,
             current_streak: h.current_streak || 0,
-            // Chain & Scaling fields
             consecutive_failures: h.consecutive_failures || 0,
             scaled_versions: h.scaled_versions || [],
             next_habit_id: h.next_habit_id,
@@ -50,42 +49,37 @@ export const cloudHabits = {
     },
 
     async upsert(habit: HabitRecipe): Promise<boolean> {
-        const payload = {
-            id: habit.id,
-            anchor: habit.anchor,
-            tiny_behavior: habit.tiny_behavior,
-            original_behavior: habit.original_behavior,
-            motivation: habit.motivation,
-            ability: habit.ability,
-            ai_suggestion: habit.ai_suggestion,
-            environment_setup: habit.environment_setup,
-            aspiration: habit.aspiration,
-            difficulty_level: habit.difficulty_level,
-            evolution_log: habit.evolution_log,
-            completed_count: habit.completed_count,
-            last_completed: habit.last_completed,
-            history: habit.history,
-            celebration_method: habit.celebration_method,
-            backup_time: habit.backup_time,
-            habit_type: habit.habit_type,
-            paused: habit.paused,
-            current_streak: habit.current_streak,
-            consecutive_failures: habit.consecutive_failures,
-            scaled_versions: habit.scaled_versions,
-            next_habit_id: habit.next_habit_id,
-        };
-
-        console.log('[cloudHabits.upsert] Sending to Supabase:', { id: payload.id, next_habit_id: payload.next_habit_id });
-
         const { error } = await supabase
             .from(HABITS_TABLE)
-            .upsert(payload, { onConflict: 'id' });
+            .upsert({
+                id: habit.id,
+                anchor: habit.anchor,
+                tiny_behavior: habit.tiny_behavior,
+                original_behavior: habit.original_behavior,
+                motivation: habit.motivation,
+                ability: habit.ability,
+                ai_suggestion: habit.ai_suggestion,
+                environment_setup: habit.environment_setup,
+                aspiration: habit.aspiration,
+                difficulty_level: habit.difficulty_level,
+                evolution_log: habit.evolution_log,
+                completed_count: habit.completed_count,
+                last_completed: habit.last_completed,
+                history: habit.history,
+                celebration_method: habit.celebration_method,
+                backup_time: habit.backup_time,
+                habit_type: habit.habit_type,
+                paused: habit.paused,
+                current_streak: habit.current_streak,
+                consecutive_failures: habit.consecutive_failures,
+                scaled_versions: habit.scaled_versions,
+                next_habit_id: habit.next_habit_id,
+            }, { onConflict: 'id' });
 
         if (error) {
             console.error('保存习惯失败:', error);
             return false;
         }
-        console.log('[cloudHabits.upsert] Success');
         return true;
     },
 
@@ -233,6 +227,185 @@ export const cloudSettings = {
     }
 };
 
+
+
+// 多 AI 配置 CRUD 操作
+export const cloudAIConfigs = {
+    async fetchAll(): Promise<import('../types').AIConfig[]> {
+        let dbConfigs: import('../types').AIConfig[] = [];
+        let dbError = null;
+
+        // 1. Try Supabase
+        try {
+            const { data, error } = await supabase
+                .from('ai_configs')
+                .select('*')
+                .order('priority', { ascending: true })
+                .order('created_at', { ascending: false });
+
+            if (error) throw error;
+            dbConfigs = data || [];
+        } catch (e: any) {
+            console.warn('云端配置获取失败 (可能表未创建), 尝试本地缓存:', e.message);
+            dbError = e;
+        }
+
+        // 2. Try LocalStorage (Always read as backup/fallback)
+        let localConfigs: import('../types').AIConfig[] = [];
+        try {
+            const cached = localStorage.getItem('fogg_ai_configs');
+            if (cached) {
+                localConfigs = JSON.parse(cached);
+            }
+        } catch (e) {
+            console.warn('本地缓存读取失败:', e);
+        }
+
+        // 3. Merge / Fallback Logic
+        // If DB failed (e.g. table missing), use LocalStorage
+        if (dbError) {
+            // Also try legacy settings if LocalStorage is empty
+            if (localConfigs.length === 0) {
+                const legacy = await cloudSettings.fetchAll();
+                if (legacy.openai_api_key) {
+                    return [{
+                        id: 'legacy-migrated',
+                        name: '旧配置 (自动迁移)',
+                        api_key: legacy.openai_api_key,
+                        base_url: legacy.openai_base_url || 'https://api.openai.com/v1',
+                        model_name: legacy.model_name || 'gpt-3.5-turbo',
+                        is_active: true,
+                        priority: 0
+                    }];
+                }
+            }
+            return localConfigs;
+        }
+
+        // If DB worked, sync TO LocalStorage for offline resilience
+        if (dbConfigs.length > 0) {
+            localStorage.setItem('fogg_ai_configs', JSON.stringify(dbConfigs));
+        }
+
+        // Fallback checks for legacy in DB result
+        if (dbConfigs.length === 0) {
+            const legacy = await cloudSettings.fetchAll();
+            if (legacy.openai_api_key) {
+                return [{
+                    id: 'legacy-migrated',
+                    name: '旧配置 (自动迁移)',
+                    api_key: legacy.openai_api_key,
+                    base_url: legacy.openai_base_url || 'https://api.openai.com/v1',
+                    model_name: legacy.model_name || 'gpt-3.5-turbo',
+                    is_active: true,
+                    priority: 0
+                }];
+            }
+        }
+
+        return dbConfigs;
+    },
+
+    async getActive(): Promise<import('../types').AIConfig | null> {
+        const all = await this.fetchAll();
+        return all.find(c => c.is_active) || null;
+    },
+
+    async upsert(config: Partial<import('../types').AIConfig>): Promise<boolean> {
+        // 1. Prepare data
+        const configToSave = { ...config };
+        if (!configToSave.id) {
+            configToSave.id = crypto.randomUUID();
+        }
+
+        // 2. Save to Supabase
+        let dbSuccess = false;
+        try {
+            const { error } = await supabase
+                .from('ai_configs')
+                .upsert(configToSave, { onConflict: 'id' });
+
+            if (error) throw error;
+            dbSuccess = true;
+        } catch (e) {
+            console.error('保存 AI 配置到云端失败:', e);
+        }
+
+        // 3. Save to LocalStorage
+        try {
+            const all = await this.fetchAll();
+            const index = all.findIndex(c => c.id === configToSave.id);
+
+            // Handle Active state
+            if (configToSave.is_active) {
+                all.forEach(c => c.is_active = false);
+            }
+
+            const merged = {
+                ...(index >= 0 ? all[index] : {}),
+                ...configToSave
+            } as import('../types').AIConfig;
+
+            if (index >= 0) {
+                all[index] = merged;
+            } else {
+                all.push(merged);
+            }
+
+            localStorage.setItem('fogg_ai_configs', JSON.stringify(all));
+        } catch (e) {
+            console.error('保存 AI 配置到本地失败:', e);
+            if (!dbSuccess) return false;
+        }
+
+        return true;
+    },
+
+    async delete(id: string): Promise<boolean> {
+        // 1. Delete from Supabase
+        try {
+            await supabase.from('ai_configs').delete().eq('id', id);
+        } catch (e) {
+            console.error('云端删除失败:', e);
+        }
+
+        // 2. Delete from LocalStorage
+        try {
+            const all = await this.fetchAll();
+            const filtered = all.filter(c => c.id !== id);
+            localStorage.setItem('fogg_ai_configs', JSON.stringify(filtered));
+        } catch (e) {
+            console.error('本地删除失败:', e);
+        }
+
+        return true;
+    },
+
+    async setActive(id: string): Promise<boolean> {
+        // 1. Update Supabase
+        try {
+            await supabase
+                .from('ai_configs')
+                .update({ is_active: true })
+                .eq('id', id);
+        } catch (e) {
+            console.error('云端激活失败:', e);
+        }
+
+        // 2. Update LocalStorage
+        try {
+            const all = await this.fetchAll();
+            all.forEach(c => {
+                c.is_active = (c.id === id);
+            });
+            localStorage.setItem('fogg_ai_configs', JSON.stringify(all));
+        } catch (e) {
+            console.error('本地激活失败:', e);
+        }
+
+        return true;
+    }
+};
 
 // 获取云端数据统计
 export const getCloudCounts = async (): Promise<{ habits: number; aspirations: number }> => {

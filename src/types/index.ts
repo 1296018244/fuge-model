@@ -84,3 +84,69 @@ export interface PraiseResult {
     message: string;
     emoji: string;
 }
+
+// AI Configuration for multiple API providers
+export interface AIConfig {
+    id: string;
+    name: string;
+    api_key: string;
+    base_url: string;
+    model_name: string;
+    is_active: boolean;
+    priority: number;
+    created_at?: string;
+    updated_at?: string;
+}
+
+export interface BackupData {
+    version: number;
+    timestamp: string;
+    habits: Habit[];
+    aspirations: string[];
+    ai_configs: AIConfig[];
+    settings: {
+        openai_api_key?: string;
+        openai_base_url?: string;
+        model_name?: string;
+    };
+}
+
+// AI Service Strict Types
+export interface AIErrorResponse {
+    error?: {
+        message: string;
+        type?: string;
+        param?: string;
+        code?: string;
+    } | string;
+    // Non-standard provider errors
+    status?: string | number;
+    msg?: string;
+    body?: any;
+}
+
+export interface AIChatCompletionChoice {
+    index: number;
+    message: {
+        role: string;
+        content: string;
+    };
+    finish_reason: string;
+}
+
+export interface AIChatCompletionResponse {
+    id: string;
+    object: string;
+    created: number;
+    model: string;
+    choices: AIChatCompletionChoice[];
+    usage?: {
+        prompt_tokens: number;
+        completion_tokens: number;
+        total_tokens: number;
+    };
+    // Non-standard errors might appear here too if 200 OK
+    status?: string | number;
+    msg?: string;
+    error?: any;
+}
