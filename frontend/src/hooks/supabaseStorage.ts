@@ -42,6 +42,9 @@ export const cloudHabits = {
             habit_type: h.habit_type || 'regular',
             paused: h.paused || false,
             current_streak: h.current_streak || 0,
+            consecutive_failures: h.consecutive_failures || 0,
+            scaled_versions: h.scaled_versions || [],
+            next_habit_id: h.next_habit_id,
         }));
     },
 
