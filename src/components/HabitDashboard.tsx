@@ -372,7 +372,14 @@ const HabitDashboard: React.FC<DashboardProps> = ({ habits, aspirations, onDelet
                                 <button
                                     className="count-save-btn"
                                     onClick={() => {
-                                        onUpdate(habit.id, { completed_count: editCount });
+                                        const oldCount = habit.completed_count || 0;
+                                        const newStreak = editCount < oldCount
+                                            ? Math.min(habit.current_streak || 0, editCount)
+                                            : habit.current_streak || 0;
+                                        onUpdate(habit.id, {
+                                            completed_count: editCount,
+                                            current_streak: newStreak
+                                        });
                                         setEditingCountId(null);
                                     }}
                                 >
