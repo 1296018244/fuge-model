@@ -40,6 +40,7 @@ export interface Habit {
     // Shine & Prompt Layers (Level 5.3 & 5.4)
     celebration_method: string;
     backup_time?: string; // e.g. "20:00"
+    reminder_time?: string; // Format: "HH:mm"
 
     // Pearl Habits (Feature 1)
     habit_type?: 'regular' | 'pearl'; // regular = normal anchor, pearl = irritation as trigger

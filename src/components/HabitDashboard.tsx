@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Trash2, CheckCircle, XCircle, Edit2, Save, Zap, Activity, Check, TrendingUp, ChevronDown, ChevronUp, ClipboardList, Link2, Layers, Minus, Plus } from 'lucide-react';
+import { Trash2, CheckCircle, XCircle, Edit2, Save, Zap, Activity, Check, TrendingUp, ChevronDown, ChevronUp, ClipboardList, Link2, Layers, Minus, Plus, Bell } from 'lucide-react';
 import { type HabitRecipe } from '../hooks/useHabits';
 import { getIdentityBadge } from '../utils/identityUtils';
 import DiagnosisModal from './DiagnosisModal';
@@ -9,6 +9,7 @@ import ConfirmModal from './ConfirmModal';
 import './ConfirmModal.css';
 import './HabitClusterView.css';
 import './HabitDashboard.css';
+import { notificationService } from '../services/notificationService';
 
 interface DashboardProps {
     habits: HabitRecipe[];
@@ -23,7 +24,7 @@ interface DashboardProps {
 
 const HabitDashboard: React.FC<DashboardProps> = ({ habits, aspirations, onDelete, onCheckIn, onFail, onUpdate, onEvolve, onSetChain }) => {
     const [editingId, setEditingId] = useState<string | null>(null);
-    const [editForm, setEditForm] = useState<{ anchor: string; tiny_behavior: string; aspiration: string }>({ anchor: '', tiny_behavior: '', aspiration: '' });
+    const [editForm, setEditForm] = useState<{ anchor: string; tiny_behavior: string; aspiration: string; reminder_time: string }>({ anchor: '', tiny_behavior: '', aspiration: '', reminder_time: '' });
     const [viewMode, setViewMode] = useState<'grid' | 'vision' | 'cluster'>('vision');
 
     // Diagnosis State
@@ -68,7 +69,12 @@ const HabitDashboard: React.FC<DashboardProps> = ({ habits, aspirations, onDelet
         setEditingId(habit.id);
         const cleanAnchor = cleanLegacyText(habit.anchor);
         const cleanBehavior = cleanLegacyText(habit.tiny_behavior);
-        setEditForm({ anchor: cleanAnchor, tiny_behavior: cleanBehavior, aspiration: habit.aspiration || '' });
+        setEditForm({
+            anchor: cleanAnchor,
+            tiny_behavior: cleanBehavior,
+            aspiration: habit.aspiration || '',
+            reminder_time: habit.reminder_time || ''
+        });
     };
 
     const saveEdit = (id: string) => {
@@ -145,6 +151,32 @@ const HabitDashboard: React.FC<DashboardProps> = ({ habits, aspirations, onDelet
                                 />
                             </div>
                         </div>
+
+                        <div className="input-group">
+                            <label><Bell size={16} /> 每日提醒 (可选)</label>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                <input
+                                    type="time"
+                                    value={editForm.reminder_time}
+                                    onChange={(e) => setEditForm({ ...editForm, reminder_time: e.target.value })}
+                                    onClick={async () => {
+                                        // Request permission on click
+                                        await notificationService.requestPermissions();
+                                    }}
+                                    style={{ flex: 1 }}
+                                />
+                                {editForm.reminder_time && (
+                                    <button
+                                        onClick={() => setEditForm({ ...editForm, reminder_time: '' })}
+                                        style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer' }}
+                                        title="清除提醒"
+                                    >
+                                        <XCircle size={18} />
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+
                         <div className="card-actions" style={{ justifyContent: 'flex-end', marginTop: '1rem' }}>
                             <button className="status-btn fail" onClick={() => setEditingId(null)}><XCircle size={20} /></button>
                             <button className="status-btn success" onClick={() => saveEdit(habit.id)}><Save size={18} /> 保存</button>

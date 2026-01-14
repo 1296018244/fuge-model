@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Cloud, CheckCircle, Plus, Trash2, Edit2, Play, Check } from 'lucide-react';
-import { cloudSettings, cloudAIConfigs, getCloudCounts } from '../hooks/supabaseStorage';
+import { Cloud, CheckCircle, Plus, Trash2, Check } from 'lucide-react';
+import { cloudSettings, cloudAIConfigs, getCloudCounts, cloudHabits } from '../hooks/supabaseStorage';
 import type { AIConfig } from '../types';
 import './SettingsModal.css';
 
@@ -272,7 +272,6 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
         <div className="modal-overlay">
             <div className="modal-content" style={{ maxWidth: '600px' }}>
                 <div className="modal-header">
-                    <h2 className="modal-title">AI 系统设置 (v2.0)</h2>
                     <button className="close-btn" onClick={onClose}>&times;</button>
                 </div>
 
@@ -412,11 +411,13 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                     </div>
                 </div>
 
-                <div className="modal-footer">
-                    <button className="cancel-btn" onClick={onClose}>关闭</button>
+                <div className="save-actions">
+                    <button onClick={onClose} className="close-btn">
+                        &times;
+                    </button>
                 </div>
             </div>
-        </div >
+        </div>
     );
 };
 

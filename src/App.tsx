@@ -1,5 +1,5 @@
 // Force HMR Update
-import { useState, useMemo, useCallback, lazy, Suspense } from 'react'
+import { useState, useMemo, useCallback, lazy, Suspense, useEffect } from 'react'
 import confetti from 'canvas-confetti'
 import SettingsModal from './components/SettingsModal'
 import HabitDashboard from './components/HabitDashboard'
@@ -15,6 +15,7 @@ const Heatmap = lazy(() => import('./components/Heatmap'))
 import { useHabits } from './hooks/useHabits'
 import { useNotifications } from './hooks/useNotifications'
 import { Plus, Zap, Sparkles, X, Calendar, Loader } from 'lucide-react'
+import { StatusBar, Style } from '@capacitor/status-bar'
 import './App.css'
 
 function App() {
@@ -45,6 +46,34 @@ function App() {
 
   // Initialize notification system (checks every minute for backup_time reminders)
   const { permissionGranted, requestPermission } = useNotifications(habits);
+
+  // Initialize StatusBar on app mount (Android-specific)
+  useEffect(() => {
+    const initStatusBar = async () => {
+      try {
+        await StatusBar.setOverlaysWebView({ overlay: false });
+        await StatusBar.setStyle({ style: Style.Dark });
+        await StatusBar.setBackgroundColor({ color: '#0f172a' });
+      } catch (e) {
+        // Ignore on web
+      }
+    };
+    initStatusBar();
+  }, []);
+
+  // Request native notification permissions on app mount (Android 13+)
+  useEffect(() => {
+    const requestNativePermissions = async () => {
+      try {
+        const { LocalNotifications } = await import('@capacitor/local-notifications');
+        const result = await LocalNotifications.requestPermissions();
+        console.log('Native Notification Permission:', result);
+      } catch (e) {
+        console.warn('Native notification permission request failed:', e);
+      }
+    };
+    requestNativePermissions();
+  }, []);
 
   // Fire confetti celebration
   const fireConfetti = useCallback(() => {

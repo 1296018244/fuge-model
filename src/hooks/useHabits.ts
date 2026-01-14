@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { cloudHabits, cloudAspirations } from './supabaseStorage';
+import { notificationService } from '../services/notificationService';
 
 export interface HabitRecipe {
     id: string;
@@ -234,7 +235,25 @@ export const useHabits = () => {
         const updatedHabit = { ...target, ...updates };
         console.log('[updateHabit] Saving to cloud:', { id: updatedHabit.id, next_habit_id: updatedHabit.next_habit_id });
 
+        // Optimistic UI
+        const prevHabits = [...habits];
         setHabits(habits.map(h => h.id === id ? updatedHabit : h));
+
+        // Update Notification logic
+        if (updates.reminder_time !== undefined) { // Check if reminder_time was part of the update
+            if (updates.reminder_time === '' || updates.reminder_time === null) {
+                // If explicitly cleared
+                await notificationService.cancelReminder(id);
+            } else {
+                // If reminder_time is set or changed
+                await notificationService.scheduleReminder(updatedHabit);
+            }
+        } else if (target.reminder_time && !updatedHabit.reminder_time) {
+            // If reminder_time was removed by other means (e.g., full object replacement without reminder_time)
+            await notificationService.cancelReminder(id);
+        }
+
+
         const success = await cloudHabits.upsert(updatedHabit);
         console.log('[updateHabit] Cloud save result:', success);
     };

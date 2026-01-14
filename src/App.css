@@ -21,17 +21,26 @@
 }
 
 .app-header {
-  height: 60px;
-  background: rgba(15, 23, 42, 0.8);
+  min-height: 60px;
+  background: #0f172a;
   backdrop-filter: blur(10px);
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 2rem;
+  padding: 1rem 1.5rem;
   position: sticky;
   top: 0;
   z-index: 100;
+}
+
+.app-header h1 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .app-main {
@@ -59,8 +68,8 @@
 }
 
 .fab-main {
-  width: 64px;
-  height: 64px;
+  width: 56px;
+  height: 56px;
   border-radius: 50%;
   background: #6366f1;
   color: white;
@@ -271,7 +280,7 @@ transform: translateY(0);
   }
 
   .app-header h1 {
-    font-size: 1rem;
+    font-size: 0.9rem;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -306,8 +315,8 @@ transform: translateY(0);
   }
 
   .fab-container {
-    bottom: 1.5rem;
-    right: 1.5rem;
+    bottom: 1.2rem;
+    right: 0.2rem;
   }
 
   /* Weekly banner stack */

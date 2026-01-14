@@ -1,73 +1,69 @@
-# React + TypeScript + Vite
+# Fuge Habit Builder (福格行为设计助手)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Based on the Fogg Behavior Model, this application helps users design, track, and sustain micro-habits through a scientific approach. It combines a modern React frontend with native Android alarm capabilities to ensure reliable habit triggers.
 
-Currently, two official plugins are available:
+## ✨ Core Features
+- **Behavior Design Wizard**: AI-powered wizard (based on Fogg's method) to help decompose goals into tiny, actionable behaviors.
+- **Micro-Habit Dashboard**: Visualize habits, anchors, and celebratory actions.
+- **Reliable Reminders**: Native Android Alarm integration (`AlarmManager` + `Foreground Service`) ensures alarms ring even when the screen is locked or the app is closed.
+- **Snooze Functionality**: 5-minute snooze option for flexible reminder management.
+- **Data Persistence**: Local first architecture continuously synced to Supabase (optional).
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## 🛠 Tech Stack
+- **Frontend**: React 18, Vite, TypeScript
+- **Styling**: Vanilla CSS (Modern Variables & Glassmorphism)
+- **Mobile Runtime**: Capacitor 5
+- **Native Modules**: Java (Android) - Custom `AlarmModule`, `AlarmService`, `AlarmActivity`
+- **State/Storage**: Custom Hooks + Supabase
 
-## React Compiler
+## 🚀 Installation & Setup
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### Prerequisites
+- **Node.js**: v18+
+- **JDK**: Java Development Kit 17 (Required for Android build)
+- **Android SDK**: Standard Android Studio SDK tools
 
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### 1. Clone & Install
+```bash
+git clone <your-repo-url>
+cd fuge-habit-model
+npm install
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### 2. Development (Web)
+To run the web version locally:
+```bash
+npm run dev
 ```
+
+### 3. Build for Android
+To compile the project and generate the Android APK:
+
+**Step A: Build Web Assets**
+```bash
+npm run build
+```
+
+**Step B: Sync with Capacitor**
+```bash
+npx cap sync
+```
+
+**Step C: Build APK (PowerShell / Windows)**
+Ensure your `JAVA_HOME` points to JDK 17 (adjust path as needed):
+```powershell
+$env:JAVA_HOME = 'C:\Program Files\Microsoft\jdk-17.0.12.7-hotspot'
+cd android
+./gradlew clean assembleDebug
+```
+
+The APK will be generated at:
+`android/app/build/outputs/apk/debug/app-debug.apk`
+
+## 📱 Native Features Notes
+- **Permissions**: The app requires `SCHEDULE_EXACT_ALARM`, `USE_FULL_SCREEN_INTENT`, and `Review Notification` permissions on Android 13+.
+- **Vibration**: Custom vibration patterns are implemented in `AlarmService.java`.
+- **UI Customization**: The Alarm UI is currently native Java-based (located in `AlarmActivity.java`).
+
+## 📄 License
+MIT
