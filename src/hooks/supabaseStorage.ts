@@ -232,45 +232,21 @@ export const cloudSettings = {
 // 多 AI 配置 CRUD 操作
 export const cloudAIConfigs = {
     async fetchAll(): Promise<import('../types').AIConfig[]> {
-        let dbConfigs: import('../types').AIConfig[] = [];
-        let dbError = null;
+        const { data, error } = await supabase
+            .from('ai_configs')
+            .select('*')
+            .order('priority', { ascending: true })
+            .order('created_at', { ascending: false });
 
-        // 1. Try Supabase
-        try {
-            const { data, error } = await supabase
-                .from('ai_configs')
-                .select('*')
-                .order('priority', { ascending: true })
-                .order('created_at', { ascending: false });
-
-            if (error) throw error;
-            dbConfigs = data || [];
-        } catch (e: any) {
-            console.warn('云端配置获取失败 (可能表未创建), 尝试本地缓存:', e.message);
-            dbError = e;
-        }
-
-        // 2. Try LocalStorage (Always read as backup/fallback)
-        let localConfigs: import('../types').AIConfig[] = [];
-        try {
-            const cached = localStorage.getItem('fogg_ai_configs');
-            if (cached) {
-                localConfigs = JSON.parse(cached);
-            }
-        } catch (e) {
-            console.warn('本地缓存读取失败:', e);
-        }
-
-        // 3. Merge / Fallback Logic
-        // If DB failed (e.g. table missing), use LocalStorage
-        if (dbError) {
-            // Also try legacy settings if LocalStorage is empty
-            if (localConfigs.length === 0) {
+        if (error) {
+            console.error('获取 AI 配置失败:', error);
+            // 降级：如果表不存在，尝试从 settings 表构造一个临时配置
+            if (error.code === '42P01') { // undefined_table
                 const legacy = await cloudSettings.fetchAll();
                 if (legacy.openai_api_key) {
                     return [{
-                        id: 'legacy-migrated',
-                        name: '旧配置 (自动迁移)',
+                        id: 'legacy-temp',
+                        name: '默认配置 (旧)',
                         api_key: legacy.openai_api_key,
                         base_url: legacy.openai_base_url || 'https://api.openai.com/v1',
                         model_name: legacy.model_name || 'gpt-3.5-turbo',
@@ -279,20 +255,15 @@ export const cloudAIConfigs = {
                     }];
                 }
             }
-            return localConfigs;
+            return [];
         }
 
-        // If DB worked, sync TO LocalStorage for offline resilience
-        if (dbConfigs.length > 0) {
-            localStorage.setItem('fogg_ai_configs', JSON.stringify(dbConfigs));
-        }
-
-        // Fallback checks for legacy in DB result
-        if (dbConfigs.length === 0) {
+        // 如果新表为空，也尝试加载旧配置，以便用户迁移
+        if (!data || data.length === 0) {
             const legacy = await cloudSettings.fetchAll();
             if (legacy.openai_api_key) {
                 return [{
-                    id: 'legacy-migrated',
+                    id: 'legacy-migrated', // 特殊 ID，提示前端这是一个迁移项
                     name: '旧配置 (自动迁移)',
                     api_key: legacy.openai_api_key,
                     base_url: legacy.openai_base_url || 'https://api.openai.com/v1',
@@ -303,106 +274,83 @@ export const cloudAIConfigs = {
             }
         }
 
-        return dbConfigs;
+        return data || [];
     },
 
     async getActive(): Promise<import('../types').AIConfig | null> {
-        const all = await this.fetchAll();
-        return all.find(c => c.is_active) || null;
+        const { data, error } = await supabase
+            .from('ai_configs')
+            .select('*')
+            .eq('is_active', true)
+            .maybeSingle();
+
+        if (error) {
+            console.error('获取激活配置失败:', error);
+            // 降级使用旧配置
+            const legacy = await cloudSettings.fetchAll();
+            if (legacy.openai_api_key) {
+                return {
+                    id: 'legacy-temp',
+                    name: '默认配置 (旧)',
+                    api_key: legacy.openai_api_key,
+                    base_url: legacy.openai_base_url || 'https://api.openai.com/v1',
+                    model_name: legacy.model_name || 'gpt-3.5-turbo',
+                    is_active: true,
+                    priority: 0
+                };
+            }
+            return null;
+        }
+
+        return data;
     },
 
     async upsert(config: Partial<import('../types').AIConfig>): Promise<boolean> {
-        // 1. Prepare data
+        // 如果是新建且没有 ID，删除 id 字段让数据库生成
         const configToSave = { ...config };
-        if (!configToSave.id) {
-            configToSave.id = crypto.randomUUID();
+        if (!configToSave.id) delete configToSave.id;
+
+        const { error } = await supabase
+            .from('ai_configs')
+            .upsert(configToSave, { onConflict: 'id' });
+
+        if (error) {
+            console.error('保存 AI 配置失败:', error);
+            return false;
         }
-
-        // 2. Save to Supabase
-        let dbSuccess = false;
-        try {
-            const { error } = await supabase
-                .from('ai_configs')
-                .upsert(configToSave, { onConflict: 'id' });
-
-            if (error) throw error;
-            dbSuccess = true;
-        } catch (e) {
-            console.error('保存 AI 配置到云端失败:', e);
-        }
-
-        // 3. Save to LocalStorage
-        try {
-            const all = await this.fetchAll();
-            const index = all.findIndex(c => c.id === configToSave.id);
-
-            // Handle Active state
-            if (configToSave.is_active) {
-                all.forEach(c => c.is_active = false);
-            }
-
-            const merged = {
-                ...(index >= 0 ? all[index] : {}),
-                ...configToSave
-            } as import('../types').AIConfig;
-
-            if (index >= 0) {
-                all[index] = merged;
-            } else {
-                all.push(merged);
-            }
-
-            localStorage.setItem('fogg_ai_configs', JSON.stringify(all));
-        } catch (e) {
-            console.error('保存 AI 配置到本地失败:', e);
-            if (!dbSuccess) return false;
-        }
-
         return true;
     },
 
     async delete(id: string): Promise<boolean> {
-        // 1. Delete from Supabase
-        try {
-            await supabase.from('ai_configs').delete().eq('id', id);
-        } catch (e) {
-            console.error('云端删除失败:', e);
-        }
+        const { error } = await supabase
+            .from('ai_configs')
+            .delete()
+            .eq('id', id);
 
-        // 2. Delete from LocalStorage
-        try {
-            const all = await this.fetchAll();
-            const filtered = all.filter(c => c.id !== id);
-            localStorage.setItem('fogg_ai_configs', JSON.stringify(filtered));
-        } catch (e) {
-            console.error('本地删除失败:', e);
+        if (error) {
+            console.error('删除 AI 配置失败:', error);
+            return false;
         }
-
         return true;
     },
 
     async setActive(id: string): Promise<boolean> {
-        // 1. Update Supabase
-        try {
-            await supabase
-                .from('ai_configs')
-                .update({ is_active: true })
-                .eq('id', id);
-        } catch (e) {
-            console.error('云端激活失败:', e);
-        }
+        // 1. 先将该 ID 设为 true (由于数据库触发器，这会自动将其他的设为 false)
+        // 如果没有触发器，我们需要手动事务处理，但这里假设已有触发器或者简单处理
 
-        // 2. Update LocalStorage
-        try {
-            const all = await this.fetchAll();
-            all.forEach(c => {
-                c.is_active = (c.id === id);
-            });
-            localStorage.setItem('fogg_ai_configs', JSON.stringify(all));
-        } catch (e) {
-            console.error('本地激活失败:', e);
-        }
+        // 简单策略：先全部设为 false（除了目标 ID），再设目标 ID 为 true
+        // 但更好的做法是依赖数据库触发器。如果没有触发器，我们可以在这里做两次更新
 
+        // 尝试利用数据库触发器
+        const { error } = await supabase
+            .from('ai_configs')
+            .update({ is_active: true })
+            .eq('id', id);
+
+        if (error) {
+            console.error('设置激活配置失败:', error);
+            return false;
+        }
         return true;
     }
 };
