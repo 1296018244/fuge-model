@@ -32,8 +32,15 @@
 
 .habits-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 1.5rem;
+}
+
+@media (max-width: 640px) {
+    .habits-grid {
+        grid-template-columns: 1fr;
+        /* Full width on small mobile */
+    }
 }
 
 /* Modern Card Design */
