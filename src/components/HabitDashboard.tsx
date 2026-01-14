@@ -43,6 +43,7 @@ const HabitDashboard: React.FC<DashboardProps> = ({ habits, aspirations, onDelet
     // Count Editing State
     const [editingCountId, setEditingCountId] = useState<string | null>(null);
     const [editCount, setEditCount] = useState(0);
+    const [editStreak, setEditStreak] = useState(0);
 
     // Display cleaner for legacy data
     const cleanLegacyText = (text: string) => {
@@ -355,42 +356,63 @@ const HabitDashboard: React.FC<DashboardProps> = ({ habits, aspirations, onDelet
                     <div className="stats-section">
                         {/* 打卡次数编辑 */}
                         {editingCountId === habit.id ? (
-                            <div className="count-editor">
-                                <button
-                                    className="count-btn"
-                                    onClick={() => setEditCount(Math.max(0, editCount - 1))}
-                                >
-                                    <Minus size={14} />
-                                </button>
-                                <span className="count-value">{editCount}</span>
-                                <button
-                                    className="count-btn"
-                                    onClick={() => setEditCount(editCount + 1)}
-                                >
-                                    <Plus size={14} />
-                                </button>
-                                <button
-                                    className="count-save-btn"
-                                    onClick={() => {
-                                        const oldCount = habit.completed_count || 0;
-                                        const newStreak = editCount < oldCount
-                                            ? Math.min(habit.current_streak || 0, editCount)
-                                            : habit.current_streak || 0;
-                                        onUpdate(habit.id, {
-                                            completed_count: editCount,
-                                            current_streak: newStreak
-                                        });
-                                        setEditingCountId(null);
-                                    }}
-                                >
-                                    <Check size={14} /> 保存
-                                </button>
-                                <button
-                                    className="count-cancel-btn"
-                                    onClick={() => setEditingCountId(null)}
-                                >
-                                    <XCircle size={14} />
-                                </button>
+                            <div className="count-editor-panel">
+                                <div className="count-editor-row">
+                                    <span className="count-label">打卡</span>
+                                    <div className="count-controls">
+                                        <button
+                                            className="count-btn"
+                                            onClick={() => setEditCount(Math.max(0, editCount - 1))}
+                                        >
+                                            <Minus size={16} />
+                                        </button>
+                                        <span className="count-value">{editCount}</span>
+                                        <button
+                                            className="count-btn"
+                                            onClick={() => setEditCount(editCount + 1)}
+                                        >
+                                            <Plus size={16} />
+                                        </button>
+                                    </div>
+                                </div>
+                                <div className="count-editor-row">
+                                    <span className="count-label">连续</span>
+                                    <div className="count-controls">
+                                        <button
+                                            className="count-btn"
+                                            onClick={() => setEditStreak(Math.max(0, editStreak - 1))}
+                                        >
+                                            <Minus size={16} />
+                                        </button>
+                                        <span className="count-value streak">{editStreak}</span>
+                                        <button
+                                            className="count-btn"
+                                            onClick={() => setEditStreak(Math.min(editCount, editStreak + 1))}
+                                        >
+                                            <Plus size={16} />
+                                        </button>
+                                    </div>
+                                </div>
+                                <div className="count-editor-actions">
+                                    <button
+                                        className="count-save-btn"
+                                        onClick={() => {
+                                            onUpdate(habit.id, {
+                                                completed_count: editCount,
+                                                current_streak: Math.min(editStreak, editCount)
+                                            });
+                                            setEditingCountId(null);
+                                        }}
+                                    >
+                                        <Check size={14} /> 保存
+                                    </button>
+                                    <button
+                                        className="count-cancel-btn"
+                                        onClick={() => setEditingCountId(null)}
+                                    >
+                                        取消
+                                    </button>
+                                </div>
                             </div>
                         ) : (
                             <div
@@ -398,8 +420,9 @@ const HabitDashboard: React.FC<DashboardProps> = ({ habits, aspirations, onDelet
                                 onClick={() => {
                                     setEditingCountId(habit.id);
                                     setEditCount(habit.completed_count || 0);
+                                    setEditStreak(habit.current_streak || 0);
                                 }}
-                                title="点击调整打卡次数"
+                                title="点击调整打卡次数和连续天数"
                             >
                                 打卡: <span className="count">{habit.completed_count || 0}</span> |
                                 连续: <span className="count">{habit.current_streak || 0}</span>

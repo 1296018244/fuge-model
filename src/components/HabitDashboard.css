@@ -229,30 +229,64 @@
     transform: translateY(-1px);
 }
 
-/* Count Editor - Premium Design */
-.count-editor {
+/* Count Editor - Panel Design */
+.count-editor-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    padding: 0.8rem;
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(30, 41, 59, 0.95));
+    border-radius: 12px;
+    border: 1px solid rgba(99, 102, 241, 0.3);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.count-editor-row {
     display: flex;
     align-items: center;
-    gap: 0.4rem;
-    padding: 0.4rem;
-    background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(168, 85, 247, 0.1));
-    border-radius: 12px;
-    border: 1px solid rgba(99, 102, 241, 0.2);
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.count-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #94a3b8;
+    min-width: 2.5rem;
+}
+
+.count-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.count-editor-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.4rem;
+    padding-top: 0.6rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .count-btn {
-    width: 32px;
-    height: 32px;
+    width: 36px;
+    height: 36px;
     border-radius: 8px;
     border: none;
-    background: linear-gradient(135deg, #4f46e5, #6366f1);
+    background: linear-gradient(135deg, #6366f1, #818cf8);
     color: white;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     transition: all 0.2s ease;
-    box-shadow: 0 2px 4px rgba(99, 102, 241, 0.3);
+    box-shadow: 0 2px 6px rgba(99, 102, 241, 0.4);
+}
+
+.count-btn svg {
+    stroke: white;
+    stroke-width: 2.5;
 }
 
 .count-btn:hover {
@@ -271,6 +305,11 @@
     min-width: 2.5rem;
     text-align: center;
     text-shadow: 0 0 8px rgba(245, 158, 11, 0.3);
+}
+
+.count-value.streak {
+    color: #10b981;
+    text-shadow: 0 0 8px rgba(16, 185, 129, 0.3);
 }
 
 .count-save-btn {
@@ -295,20 +334,20 @@
 }
 
 .count-cancel-btn {
-    padding: 0.5rem;
+    padding: 0.5rem 0.8rem;
     border-radius: 8px;
-    border: none;
-    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    background: transparent;
     color: #f87171;
     cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    font-size: 0.8rem;
+    font-weight: 500;
     transition: all 0.2s ease;
 }
 
 .count-cancel-btn:hover {
-    background: rgba(239, 68, 68, 0.2);
+    background: rgba(239, 68, 68, 0.15);
+    border-color: rgba(239, 68, 68, 0.5);
     color: #ef4444;
 }
 
