@@ -19,9 +19,22 @@
     border-radius: 20px;
     width: 90%;
     max-width: 480px;
+    max-height: 90vh;
+    /* Limit height to viewport */
+    overflow-y: auto;
+    /* Enable scrolling */
     border: 1px solid rgba(255, 255, 255, 0.1);
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
     animation: scaleUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@media (max-width: 640px) {
+    .modal-content {
+        padding: 1.5rem;
+        /* Reduce padding on mobile */
+        width: 95%;
+        /* Use more width on mobile */
+    }
 }
 
 @keyframes scaleUp {
