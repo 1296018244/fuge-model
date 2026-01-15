@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { Trash2, CheckCircle, XCircle, Edit2, Save, Zap, Activity, Check, TrendingUp, ChevronDown, ChevronUp, ClipboardList, Link2, Layers, Minus, Plus, Bell } from 'lucide-react';
+import { Trash2, CheckCircle, XCircle, Edit2, Save, Zap, Activity, Check, TrendingUp, ChevronDown, ChevronUp, ClipboardList, Link2, Layers, Bell, MessageCircle } from 'lucide-react';
 import { type HabitRecipe } from '../hooks/useHabits';
 import { getIdentityBadge } from '../utils/identityUtils';
 import DiagnosisModal from './DiagnosisModal';
+import FeedbackModal from './FeedbackModal';
 import EvolutionModal from './EvolutionModal';
 import HabitClusterView from './HabitClusterView';
 import ConfirmModal from './ConfirmModal';
@@ -15,21 +16,60 @@ interface DashboardProps {
     habits: HabitRecipe[];
     aspirations?: string[];
     onDelete: (id: string) => void;
-    onCheckIn: (id: string) => void;
+    onCheckIn: (id: string, level?: 'mini' | 'plus' | 'elite') => void;
+    onBatchCheckIn?: (ids: string[]) => void;
     onFail: (id: string) => void;
     onUpdate: (id: string, updates: Partial<HabitRecipe>) => void;
-    onEvolve: (id: string, newAnchor: string, newBehavior: string) => void;
-    onSetChain?: (id: string) => void; // Habit chaining
+    onEvolve: (id: string, updates: Partial<HabitRecipe>) => void;
+    aspirations: string[];
+    onSetChain?: (habitId: string) => void;
+    onAddHabit?: (anchor: string) => void;
+    onReorder?: (ids: string[]) => void;
 }
 
-const HabitDashboard: React.FC<DashboardProps> = ({ habits, aspirations, onDelete, onCheckIn, onFail, onUpdate, onEvolve, onSetChain }) => {
+const HabitDashboard: React.FC<DashboardProps> = ({ habits, aspirations, onDelete, onCheckIn, onBatchCheckIn, onFail, onUpdate, onEvolve, onSetChain, onAddHabit, onReorder }) => {
     const [editingId, setEditingId] = useState<string | null>(null);
-    const [editForm, setEditForm] = useState<{ anchor: string; tiny_behavior: string; aspiration: string; reminder_time: string }>({ anchor: '', tiny_behavior: '', aspiration: '', reminder_time: '' });
+    const [editForm, setEditForm] = useState<{
+        anchor: string;
+        tiny_behavior: string;
+        aspiration: string;
+        reminder_time: string;
+        elastic_versions?: { mini: string; plus: string; elite: string };
+    }>({ anchor: '', tiny_behavior: '', aspiration: '', reminder_time: '' });
     const [viewMode, setViewMode] = useState<'grid' | 'vision' | 'cluster'>('vision');
 
     // Diagnosis State
     const [isDiagnosisOpen, setIsDiagnosisOpen] = useState(false);
     const [failedHabit, setFailedHabit] = useState<HabitRecipe | null>(null);
+    const [feedbackTarget, setFeedbackTarget] = useState<{ habit: HabitRecipe, logId: string } | null>(null);
+
+    // Feedback Loop Check
+    React.useEffect(() => {
+        const now = new Date();
+        const pending = habits.flatMap(h => (h.diagnosis_log || [])
+            .filter(log => !log.feedback && (now.getTime() - new Date(log.date).getTime()) > 3 * 24 * 60 * 60 * 1000)
+            .map(log => ({ habit: h, logId: log.id }))
+        );
+
+        if (pending.length > 0) {
+            // Delay slightly to avoid clashing with other modals
+            setTimeout(() => setFeedbackTarget(pending[0]), 2000);
+        }
+    }, [habits]);
+
+    const handleFeedback = (isHelpful: boolean) => {
+        if (!feedbackTarget) return;
+        const { habit, logId } = feedbackTarget;
+
+        const newLog = (habit.diagnosis_log || []).map(log =>
+            log.id === logId
+                ? { ...log, feedback: isHelpful ? 'helpful' : 'not_helpful' as const }
+                : log
+        );
+
+        onUpdate(habit.id, { diagnosis_log: newLog });
+        setFeedbackTarget(null);
+    };
 
     // Evolution State
     const [isEvolutionOpen, setIsEvolutionOpen] = useState(false);
@@ -45,6 +85,9 @@ const HabitDashboard: React.FC<DashboardProps> = ({ habits, aspirations, onDelet
     const [editingCountId, setEditingCountId] = useState<string | null>(null);
     const [editCount, setEditCount] = useState(0);
     const [editStreak, setEditStreak] = useState(0);
+
+    // Compact Card State - default collapsed
+    const [expandedCardId, setExpandedCardId] = useState<string | null>(null);
 
     // Display cleaner for legacy data
     const cleanLegacyText = (text: string) => {
@@ -73,7 +116,8 @@ const HabitDashboard: React.FC<DashboardProps> = ({ habits, aspirations, onDelet
             anchor: cleanAnchor,
             tiny_behavior: cleanBehavior,
             aspiration: habit.aspiration || '',
-            reminder_time: habit.reminder_time || ''
+            reminder_time: habit.reminder_time || '',
+            elastic_versions: habit.elastic_versions || { mini: cleanBehavior, plus: '', elite: '' }
         });
     };
 
@@ -104,7 +148,20 @@ const HabitDashboard: React.FC<DashboardProps> = ({ habits, aspirations, onDelet
 
     // Handle AI Fix
     const handleApplyFix = (habitId: string, updates: any) => {
-        onUpdate(habitId, updates);
+        const { diagnosis, ...habitUpdates } = updates;
+
+        // Create log entry
+        const logEntry = {
+            id: crypto.randomUUID(),
+            date: new Date().toISOString(),
+            diagnosis: diagnosis || "AI Suggestion",
+            suggestion: `Anchor: ${habitUpdates.anchor}, Behavior: ${habitUpdates.tiny_behavior}`,
+        };
+
+        const currentHabit = habits.find(h => h.id === habitId);
+        const newLog = [...(currentHabit?.diagnosis_log || []), logEntry];
+
+        onUpdate(habitId, { ...habitUpdates, diagnosis_log: newLog });
     };
 
     const renderHabitCard = (habit: HabitRecipe) => {
@@ -123,12 +180,47 @@ const HabitDashboard: React.FC<DashboardProps> = ({ habits, aspirations, onDelet
                             />
                         </div>
                         <div className="input-group">
-                            <label><Zap size={16} /> 微行为</label>
+                            <label><Zap size={16} /> 微行为 (Mini - 及格线)</label>
                             <input
                                 value={editForm.tiny_behavior}
-                                onChange={(e) => setEditForm({ ...editForm, tiny_behavior: e.target.value })}
+                                onChange={(e) => setEditForm({
+                                    ...editForm,
+                                    tiny_behavior: e.target.value,
+                                    elastic_versions: { ...editForm.elastic_versions!, mini: e.target.value }
+                                })}
                                 placeholder="例如: 我就..."
                             />
+                        </div>
+
+                        <div className="input-group" style={{
+                            background: 'rgba(255,255,255,0.03)',
+                            padding: '0.8rem',
+                            borderRadius: '8px',
+                            border: '1px dashed rgba(255,255,255,0.1)'
+                        }}>
+                            <label style={{ color: '#a78bfa', marginBottom: '0.5rem', display: 'block', fontSize: '0.85rem', fontWeight: 600 }}>
+                                弹性目标 (可选)
+                            </label>
+                            <div style={{ display: 'flex', gap: '0.5rem', flexDirection: 'column' }}>
+                                <input
+                                    value={editForm.elastic_versions?.plus || ''}
+                                    onChange={(e) => setEditForm({
+                                        ...editForm,
+                                        elastic_versions: { ...editForm.elastic_versions!, plus: e.target.value }
+                                    })}
+                                    placeholder="Plus (进阶版): 稍微多做一点..."
+                                    style={{ fontSize: '0.9rem' }}
+                                />
+                                <input
+                                    value={editForm.elastic_versions?.elite || ''}
+                                    onChange={(e) => setEditForm({
+                                        ...editForm,
+                                        elastic_versions: { ...editForm.elastic_versions!, elite: e.target.value }
+                                    })}
+                                    placeholder="Elite (精英版): 完美达成!"
+                                    style={{ fontSize: '0.9rem' }}
+                                />
+                            </div>
                         </div>
                         <div className="input-group">
                             <label><Layers size={16} /> 愿景分类</label>
@@ -186,8 +278,14 @@ const HabitDashboard: React.FC<DashboardProps> = ({ habits, aspirations, onDelet
             );
         }
 
+        const isExpanded = expandedCardId === habit.id;
+
         return (
-            <div key={habit.id} className={`habit-card ${habit.habit_type === 'pearl' ? 'pearl' : ''}`}>
+            <div
+                key={habit.id}
+                className={`habit-card ${habit.habit_type === 'pearl' ? 'pearl' : ''} ${isExpanded ? 'expanded' : 'compact'}`}
+                onClick={() => !isExpanded && setExpandedCardId(habit.id)}
+            >
                 {/* Top Bar: Aspiration & Actions */}
                 <div className="card-top-bar">
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -240,6 +338,15 @@ const HabitDashboard: React.FC<DashboardProps> = ({ habits, aspirations, onDelet
                         >
                             <Trash2 size={16} />
                         </button>
+                        {isExpanded && (
+                            <button
+                                onClick={(e) => { e.stopPropagation(); setExpandedCardId(null); }}
+                                title="收起"
+                                style={{ background: 'rgba(99,102,241,0.2)', border: 'none', cursor: 'pointer', color: '#818cf8', padding: '4px 8px', borderRadius: '6px', fontSize: '0.75rem' }}
+                            >
+                                收起
+                            </button>
+                        )}
                     </div>
                 </div>
 
@@ -477,12 +584,45 @@ const HabitDashboard: React.FC<DashboardProps> = ({ habits, aspirations, onDelet
                     </div>
 
                     <div className="footer-actions">
-                        <button className="status-btn fail" onClick={() => handleFailClick(habit)} title="遇到困难?">
-                            <XCircle size={20} />
+                        <button className="status-btn diagnosis" onClick={() => handleFailClick(habit)} title="AI 诊断">
+                            <MessageCircle size={18} /> 聊聊
                         </button>
-                        <button className="status-btn success" onClick={() => onCheckIn(habit.id)}>
-                            <CheckCircle size={18} /> 打卡
-                        </button>
+                        {habit.elastic_versions && (habit.elastic_versions.plus || habit.elastic_versions.elite) ? (
+                            <div className="elastic-actions" style={{ display: 'flex', gap: '4px' }}>
+                                <button
+                                    className="status-btn success"
+                                    onClick={() => onCheckIn(habit.id, 'mini')}
+                                    title={`及格线 (Mini): ${habit.elastic_versions.mini || habit.tiny_behavior}`}
+                                    style={{ padding: '0.6rem 0.8rem', fontSize: '0.8rem' }}
+                                >
+                                    <CheckCircle size={16} /> Mini
+                                </button>
+                                {habit.elastic_versions.plus && (
+                                    <button
+                                        className="status-btn success"
+                                        onClick={() => onCheckIn(habit.id, 'plus')}
+                                        title={`进阶版 (Plus): ${habit.elastic_versions.plus}`}
+                                        style={{ padding: '0.6rem 0.8rem', background: '#4f46e5', fontSize: '0.8rem' }}
+                                    >
+                                        Plus
+                                    </button>
+                                )}
+                                {habit.elastic_versions.elite && (
+                                    <button
+                                        className="status-btn success"
+                                        onClick={() => onCheckIn(habit.id, 'elite')}
+                                        title={`精英版 (Elite): ${habit.elastic_versions.elite}`}
+                                        style={{ padding: '0.6rem 0.8rem', background: '#4338ca', fontSize: '0.8rem' }}
+                                    >
+                                        Elite
+                                    </button>
+                                )}
+                            </div>
+                        ) : (
+                            <button className="status-btn success" onClick={() => onCheckIn(habit.id)}>
+                                <CheckCircle size={18} /> 打卡
+                            </button>
+                        )}
                     </div>
                 </div>
             </div>
@@ -565,7 +705,13 @@ const HabitDashboard: React.FC<DashboardProps> = ({ habits, aspirations, onDelet
             ) : (
                 <>
                     {viewMode === 'cluster' ? (
-                        <HabitClusterView habits={habits} />
+                        <HabitClusterView
+                            habits={habits}
+                            onCheckIn={onCheckIn}
+                            onBatchCheckIn={onBatchCheckIn}
+                            onAdd={onAddHabit}
+                            onReorder={onReorder}
+                        />
                     ) : viewMode === 'grid' ? (
                         <div className="habits-grid">
                             {rootHabits.map(renderHabitCard)}
@@ -624,6 +770,13 @@ const HabitDashboard: React.FC<DashboardProps> = ({ habits, aspirations, onDelet
                 onClose={() => setIsDiagnosisOpen(false)}
                 habit={failedHabit}
                 onApplyFix={handleApplyFix}
+            />
+
+            <FeedbackModal
+                isOpen={!!feedbackTarget}
+                habitName={feedbackTarget?.habit.tiny_behavior || ''}
+                onClose={() => setFeedbackTarget(null)}
+                onFeedback={handleFeedback}
             />
 
             <EvolutionModal

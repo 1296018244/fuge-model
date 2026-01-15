@@ -19,6 +19,14 @@ export interface HabitRecipe {
     aspiration?: string; // Vision Layer
     difficulty_level: number; // Evolution Layer
     evolution_log: { date: string; type: 'creation' | 'upgrade' | 'downgrade'; change: string; note?: string }[];
+    diagnosis_log?: {
+        id: string;
+        date: string;
+        diagnosis: string;
+        suggestion: string;
+        feedback?: 'helpful' | 'not_helpful';
+        feedback_note?: string;
+    }[];
     // Stats
     created_at: string;
     completed_count: number;
@@ -37,6 +45,21 @@ export interface HabitRecipe {
     scaled_versions?: string[]; // Preset simpler versions of the behavior
     // Habit Chaining (Fogg: Behavior Sequence)
     next_habit_id?: string; // ID of habit to prompt after this one completes
+    // Elastic Habits (Feature: Ability Scaling)
+    elastic_versions?: {
+        mini: string; // The "Mini" version (Good) - default tiny_behavior
+        plus: string; // The "Plus" version (Better) - slightly more effort
+        elite: string; // The "Elite" version (Best) - full ideal behavior
+    };
+    last_completion_level?: 'mini' | 'plus' | 'elite'; // Track which level was last completed
+    // Task 2: Granular History
+    completion_log?: {
+        date: string;
+        level: 'mini' | 'plus' | 'elite';
+        score: number;
+    }[];
+    // Task 3: Custom Order
+    sort_order?: number;
 }
 
 export const useHabits = () => {
@@ -194,11 +217,14 @@ export const useHabits = () => {
         }
     };
 
-    const checkInHabit = async (id: string): Promise<{ nextHabitId?: string }> => {
+    const checkInHabit = async (id: string, level: 'mini' | 'plus' | 'elite' = 'mini'): Promise<{ nextHabitId?: string }> => {
         const target = habits.find(h => h.id === id);
         if (!target) return {};
 
         const now = new Date().toISOString();
+        const scoreMap = { mini: 1, plus: 3, elite: 5 };
+        const score = scoreMap[level] || 1;
+
         const updatedHabit: HabitRecipe = {
             ...target,
             completed_count: target.completed_count + 1,
@@ -206,6 +232,11 @@ export const useHabits = () => {
             history: [...(target.history || []), now],
             consecutive_failures: 0,
             current_streak: (target.current_streak || 0) + 1,
+            last_completion_level: level,
+            completion_log: [
+                ...(target.completion_log || []),
+                { date: now, level, score }
+            ]
         };
 
         // Optimistic UI
@@ -214,9 +245,7 @@ export const useHabits = () => {
 
         cloudHabits.upsert(updatedHabit).then(success => {
             if (!success) {
-                // Silent fail or toast? for check-in silent is maybe ok, but data consistency matters.
                 console.error("Failed to sync check-in");
-                // We don't revert check-in immediately to avoid jarring UX, but it won't persist if reload.
             }
         });
 
@@ -312,6 +341,33 @@ export const useHabits = () => {
         updateHabit(id, { scaled_versions: versions });
     };
 
-    return { habits, addHabit, deleteHabit, checkInHabit, updateHabit, evolveHabit, aspirations, addAspiration, pauseHabit, getWeeklyCompletionRate, recordFailure, setHabitChain, setScaledVersions, isLoading };
+    const reorderHabits = async (orderedIds: string[]) => {
+        // Optimistic
+        const idMap = new Map(habits.map(h => [h.id, h]));
+        const newHabits = [...habits];
+
+        const updates: HabitRecipe[] = [];
+
+        orderedIds.forEach((id, index) => {
+            const h = idMap.get(id);
+            if (h && h.sort_order !== index) {
+                const updated = { ...h, sort_order: index };
+                updates.push(updated);
+                // Update local list
+                const idx = newHabits.findIndex(nh => nh.id === id);
+                if (idx !== -1) newHabits[idx] = updated;
+            }
+        });
+
+        if (updates.length === 0) return;
+
+        setHabits(newHabits);
+
+        // Batch update to cloud? Supabase upsert accepts array.
+        const success = await cloudHabits.upsert(updates);
+        if (!success) console.error("Failed to reorder");
+    };
+
+    return { habits, addHabit, deleteHabit, checkInHabit, updateHabit, evolveHabit, aspirations, addAspiration, pauseHabit, getWeeklyCompletionRate, recordFailure, setHabitChain, setScaledVersions, reorderHabits, isLoading };
 };
 

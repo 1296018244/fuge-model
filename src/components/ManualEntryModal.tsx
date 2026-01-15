@@ -13,11 +13,12 @@ interface ManualEntryModalProps {
     onSave: (anchor: string, behavior: string, aspiration: string, celebration: string, backupTime?: string, habitType?: 'regular' | 'pearl') => void;
     aspirations: string[];
     onAddAspiration: (name: string) => void;
+    initialAnchor?: string;
 }
 
-const ManualEntryModal: React.FC<ManualEntryModalProps> = ({ isOpen, onClose, onSave, aspirations, onAddAspiration }) => {
+const ManualEntryModal: React.FC<ManualEntryModalProps> = ({ isOpen, onClose, onSave, aspirations, onAddAspiration, initialAnchor }) => {
     const [habitMode, setHabitMode] = useState<'regular' | 'pearl'>('regular');
-    const [anchor, setAnchor] = useState('');
+    const [anchor, setAnchor] = useState(initialAnchor || '');
     const [behavior, setBehavior] = useState('');
     const [celebration, setCelebration] = useState<CelebrationConfig>({
         bodyAction: 'fist',
@@ -40,6 +41,13 @@ const ManualEntryModal: React.FC<ManualEntryModalProps> = ({ isOpen, onClose, on
         onSave(anchor, behavior, finalAsp || "未分类", celebrationText, backupTime, habitMode);
         onClose();
     };
+
+    // Update anchor when initialAnchor changes or modal re-opens
+    React.useEffect(() => {
+        if (isOpen) {
+            setAnchor(initialAnchor || '');
+        }
+    }, [isOpen, initialAnchor]);
 
     if (!isOpen) return null;
 

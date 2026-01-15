@@ -34,6 +34,17 @@
                 android:resource="@xml/file_paths"></meta-data>
         </provider>
         <receiver android:name=".AlarmReceiver" android:exported="true" />
+        <receiver 
+            android:name=".BootReceiver"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.LOCKED_BOOT_COMPLETED" />
+                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+                <action android:name="com.htc.intent.action.QUICKBOOT_POWERON" />
+            </intent-filter>
+        </receiver>
         <activity
             android:name=".AlarmActivity"
             android:theme="@style/AppTheme.NoActionBarLaunch"

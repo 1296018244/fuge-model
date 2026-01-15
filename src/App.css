@@ -332,3 +332,57 @@ transform: translateY(0);
     justify-content: flex-end;
   }
 }
+
+/* Golden Window Banner */
+.golden-window-banner {
+  position: fixed;
+  bottom: 100px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: white;
+  padding: 0.8rem 1.5rem;
+  border-radius: 50px;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  box-shadow: 0 10px 30px rgba(245, 158, 11, 0.4);
+  cursor: pointer;
+  animation: goldenPulse 2s infinite;
+  z-index: 900;
+  font-weight: 600;
+}
+
+.golden-window-banner .glow {
+  font-size: 1.3rem;
+  animation: goldenSpin 3s linear infinite;
+}
+
+.golden-window-banner .tap-hint {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 0.3rem 0.6rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+}
+
+@keyframes goldenPulse {
+
+  0%,
+  100% {
+    box-shadow: 0 10px 30px rgba(245, 158, 11, 0.4);
+  }
+
+  50% {
+    box-shadow: 0 10px 40px rgba(245, 158, 11, 0.6);
+  }
+}
+
+@keyframes goldenSpin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}

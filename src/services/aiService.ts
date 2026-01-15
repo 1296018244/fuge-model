@@ -242,7 +242,7 @@ export const analyzeBehavior = async (
     }
 };
 
-// Diagnosis for DiagnosisModal
+// Diagnosis for DiagnosisModal (Legacy - kept for compatibility)
 export const diagnoseFailure = async (habit: any, reason: string): Promise<any> => {
     const systemPrompt = `你是一位行为习惯医生，专门帮助用户诊断为什么习惯没有执行成功，并提供修复方案。
 
@@ -294,6 +294,109 @@ export const diagnoseFailure = async (habit: any, reason: string): Promise<any> 
     }
 };
 
+// Message type for chat
+export interface ChatMessage {
+    role: 'user' | 'assistant' | 'system';
+    content: string;
+}
+
+// Conversational diagnosis - multi-turn chat
+export const diagnosisChat = async (
+    habit: any,
+    messages: ChatMessage[]
+): Promise<{ reply: string; suggestion?: { anchor: string; tiny_behavior: string } }> => {
+    const systemPrompt = `你是用户的好朋友，同时也懂一点行为心理学。用户正在尝试养成一个习惯但遇到了困难。
+
+你的角色：
+- 像朋友一样聊天，不要太正式
+- 先表达理解和共情，再给建议
+- 可以适当用emoji让对话更轻松
+- 如果用户说的不够清楚，可以追问
+
+用户正在尝试的习惯：
+- 锚点: ${habit.anchor}
+- 微行为: ${habit.tiny_behavior}
+${habit.original_behavior ? `- 原始目标: ${habit.original_behavior}` : ''}
+
+过去的诊断记录 (参考用):
+${(habit.diagnosis_log || []).map((log: any) =>
+        `- [${log.date.split('T')[0]}] 建议: "${log.suggestion}". 用户反馈: ${log.feedback === 'helpful' ? '有用 ✅' : log.feedback === 'not_helpful' ? '没用 ❌' : '未知'}`
+    ).join('\n')}
+
+对话规则：
+1. 如果你觉得信息足够了，可以给出具体建议
+2. 如果需要给出新方案，在回复末尾加上这个格式（用户看不到这部分，系统会解析）：
+   [SUGGESTION]{"anchor": "新锚点", "tiny_behavior": "新微行为"}[/SUGGESTION]
+3. 不要每次都给建议，先聊几句再说
+4. 回复要简短，像发微信一样，不要写长篇大论`;
+
+    const { apiKey, baseUrl, model } = await getAIConfig();
+
+    if (!apiKey) {
+        throw new Error('请先在设置中配置 AI API Key');
+    }
+
+    const allMessages = [
+        { role: 'system' as const, content: systemPrompt },
+        ...messages
+    ];
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 60000);
+
+    try {
+        const response = await fetch(`${baseUrl}/chat/completions`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${apiKey}`
+            },
+            body: JSON.stringify({
+                model,
+                messages: allMessages,
+                temperature: 0.8
+            }),
+            signal: controller.signal
+        });
+
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`AI 请求失败 (${response.status}): ${errorText.substring(0, 100)}`);
+        }
+
+        const data = await response.json() as import('../types').AIChatCompletionResponse;
+        const content = data.choices?.[0]?.message?.content || '';
+
+        // Parse suggestion if present
+        const suggestionMatch = content.match(/\[SUGGESTION\](.*?)\[\/SUGGESTION\]/s);
+        let suggestion: { anchor: string; tiny_behavior: string } | undefined;
+        let reply = content;
+
+        if (suggestionMatch) {
+            try {
+                suggestion = JSON.parse(suggestionMatch[1]);
+                reply = content.replace(/\[SUGGESTION\].*?\[\/SUGGESTION\]/s, '').trim();
+            } catch {
+                // If parsing fails, just show the raw reply
+            }
+        }
+
+        return { reply, suggestion };
+
+    } catch (error: unknown) {
+        clearTimeout(timeoutId);
+        if (error instanceof Error) {
+            if (error.name === 'AbortError') {
+                throw new Error('请求超时，请检查网络');
+            }
+            throw error;
+        }
+        throw new Error(String(error));
+    }
+};
+
 // Praise for celebrations
 export const getPraise = async (behavior: string): Promise<PraiseResult> => {
     try {
@@ -302,5 +405,47 @@ export const getPraise = async (behavior: string): Promise<PraiseResult> => {
         return JSON.parse(response);
     } catch {
         return { message: '你真棒！继续加油！', emoji: '👍' };
+    }
+};
+
+// Weekly AI Review - analyzes habits and suggests improvements
+export const weeklyReview = async (habits: any[]): Promise<{
+    summary: string;
+    highlights: string[];
+    suggestions: string[];
+    focusHabit?: string;
+}> => {
+    const systemPrompt = `你是一位行为设计教练，正在为用户做每周复盘。
+分析用户的习惯数据，给出鼓励和建议。
+
+回复纯JSON格式：
+{
+  "summary": "一句话总结本周表现",
+  "highlights": ["成就1", "成就2"],
+  "suggestions": ["建议1", "建议2"],
+  "focusHabit": "下周重点关注的习惯名称（可选）"
+}`;
+
+    const habitData = habits.map(h => ({
+        name: h.tiny_behavior,
+        streak: h.current_streak || 0,
+        total: h.completed_count || 0,
+        level: h.difficulty_level || 1,
+        failures: h.consecutive_failures || 0
+    }));
+
+    const userMessage = `本周习惯数据：\n${JSON.stringify(habitData, null, 2)}`;
+
+    try {
+        const response = await chatCompletion(systemPrompt, userMessage);
+        const cleaned = cleanJsonResponse(response);
+        return JSON.parse(cleaned);
+    } catch (e) {
+        console.error('[AI] Weekly review error:', e);
+        return {
+            summary: '继续保持！每一天的坚持都很重要。',
+            highlights: ['你正在养成好习惯'],
+            suggestions: ['保持简单，持续行动']
+        };
     }
 };

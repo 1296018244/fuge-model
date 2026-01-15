@@ -1,0 +1,125 @@
+.env-check-card {
+    background: #1e293b;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    width: 90%;
+    max-width: 400px;
+    padding: 1.5rem;
+    position: relative;
+    animation: slideUp 0.3s ease;
+}
+
+.env-check-header {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 0.5rem;
+}
+
+.env-check-header .icon {
+    color: #a78bfa;
+}
+
+.env-check-header h2 {
+    margin: 0;
+    font-size: 1.2rem;
+    color: #e2e8f0;
+}
+
+.env-check-subtitle {
+    color: #94a3b8;
+    font-size: 0.9rem;
+    margin-bottom: 1.2rem;
+}
+
+.env-checklist {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+
+.checklist-item {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    padding: 0.8rem 1rem;
+    color: #cbd5e1;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: left;
+}
+
+.checklist-item:hover {
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.checklist-item.checked {
+    background: rgba(16, 185, 129, 0.1);
+    border-color: rgba(16, 185, 129, 0.3);
+}
+
+.checklist-item .check-icon {
+    color: #64748b;
+    flex-shrink: 0;
+}
+
+.checklist-item.checked .check-icon {
+    color: #10b981;
+}
+
+.env-check-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.8rem;
+    margin-top: 1.5rem;
+}
+
+.skip-btn {
+    background: transparent;
+    border: none;
+    color: #64748b;
+    font-size: 0.9rem;
+    cursor: pointer;
+    padding: 0.6rem 1rem;
+}
+
+.skip-btn:hover {
+    color: #94a3b8;
+}
+
+.confirm-btn {
+    background: #334155;
+    color: #64748b;
+    border: none;
+    padding: 0.7rem 1.2rem;
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: not-allowed;
+    transition: all 0.2s;
+}
+
+.confirm-btn.ready {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+    cursor: pointer;
+}
+
+.confirm-btn.ready:hover {
+    transform: scale(1.02);
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

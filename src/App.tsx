@@ -9,12 +9,17 @@ import ScalingSuggestionModal from './components/ScalingSuggestionModal'
 import ChainSettingModal from './components/ChainSettingModal'
 import RehearsalModal from './components/RehearsalModal'
 import Toast from './components/Toast'
+import AchievementBadge, { checkAchievements, ACHIEVEMENTS } from './components/AchievementBadge'
+import type { Achievement } from './components/AchievementBadge'
+import EnvironmentCheckModal from './components/EnvironmentCheckModal'
+import AbilityMap from './components/AbilityMap'
+import './components/AchievementBadge.css'
 // Lazy load heavy components
 const BehaviorWizard = lazy(() => import('./components/BehaviorWizard'))
 const Heatmap = lazy(() => import('./components/Heatmap'))
 import { useHabits } from './hooks/useHabits'
 import { useNotifications } from './hooks/useNotifications'
-import { Plus, Zap, Sparkles, X, Calendar, Loader } from 'lucide-react'
+import { Plus, Zap, Sparkles, X, Calendar, Loader, Award } from 'lucide-react'
 import { StatusBar, Style } from '@capacitor/status-bar'
 import './App.css'
 
@@ -25,6 +30,13 @@ function App() {
   const [isCreatorOpen, setIsCreatorOpen] = useState(false); // The FAB menu
   const [isWizardOpen, setIsWizardOpen] = useState(false);
   const [isManualOpen, setIsManualOpen] = useState(false);
+  const [initialAnchor, setInitialAnchor] = useState('');
+
+  // Quick Add from Cluster
+  const handleQuickAdd = (anchor: string) => {
+    setInitialAnchor(anchor);
+    setIsManualOpen(true);
+  };
 
   // Weekly Review
   const [isWeeklyReviewOpen, setIsWeeklyReviewOpen] = useState(false);
@@ -42,7 +54,21 @@ function App() {
   // Rehearsal modal state (for post-habit-creation landing flow)
   const [rehearsalHabit, setRehearsalHabit] = useState<{ anchor: string; tiny_behavior: string; celebration_method: string } | null>(null);
 
-  const { habits, addHabit, deleteHabit, checkInHabit, updateHabit, evolveHabit, aspirations, addAspiration, pauseHabit, getWeeklyCompletionRate, recordFailure, setHabitChain, isLoading } = useHabits();
+  // Achievement system state
+  const [unlockedAchievements, setUnlockedAchievements] = useState<string[]>(() => {
+    const saved = localStorage.getItem('fogg_achievements');
+    return saved ? JSON.parse(saved) : [];
+  });
+  const [newAchievement, setNewAchievement] = useState<Achievement | null>(null);
+
+  // Environment check modal state
+  const [envCheckModal, setEnvCheckModal] = useState<{ isOpen: boolean; habitId: string; habitName: string; checklist: string[] }>({ isOpen: false, habitId: '', habitName: '', checklist: [] });
+
+  // Golden window (high motivation moment)
+  const [showGoldenWindow, setShowGoldenWindow] = useState(false);
+  const [consecutiveSuccess, setConsecutiveSuccess] = useState(0);
+
+  const { habits, addHabit, deleteHabit, checkInHabit, updateHabit, evolveHabit, aspirations, addAspiration, pauseHabit, getWeeklyCompletionRate, recordFailure, setHabitChain, setScaledVersions, reorderHabits, isLoading } = useHabits();
 
   // Initialize notification system (checks every minute for backup_time reminders)
   const { permissionGranted, requestPermission } = useNotifications(habits);
@@ -109,13 +135,41 @@ function App() {
     // Logic handled in Dashboard modal
   };
 
-  const handleCheckIn = async (id: string, behaviorName: string) => {
-    const { nextHabitId } = await checkInHabit(id);
+  const handleCheckIn = async (id: string, level: 'mini' | 'plus' | 'elite' = 'mini') => {
+    const { nextHabitId } = await checkInHabit(id, level);
     const habit = habits.find(h => h.id === id);
+    const date = new Date().toISOString().split('T')[0];
     const celebration = habit?.celebration_method || "给自己一个微笑";
 
     // 🎉 Shine: Celebration with confetti and toast
     fireConfetti();
+
+    // 📳 Haptic feedback for mobile
+    try {
+      const { Haptics, ImpactStyle } = await import('@capacitor/haptics');
+      await Haptics.impact({ style: ImpactStyle.Medium });
+    } catch { /* Not on mobile or haptics not available */ }
+
+    // 🏆 Check for new achievements
+    const newAchievements = checkAchievements(habits, unlockedAchievements);
+    if (newAchievements.length > 0) {
+      const achievement = newAchievements[0];
+      setNewAchievement(achievement);
+      const updatedAchievements = [...unlockedAchievements, ...newAchievements.map(a => a.id)];
+      setUnlockedAchievements(updatedAchievements);
+      localStorage.setItem('fogg_achievements', JSON.stringify(updatedAchievements));
+      setTimeout(() => setNewAchievement(null), 4000);
+    }
+
+    // 🌟 Golden window: track consecutive successes
+    setConsecutiveSuccess(prev => {
+      const newCount = prev + 1;
+      if (newCount >= 3 && !showGoldenWindow) {
+        setShowGoldenWindow(true);
+        setTimeout(() => setShowGoldenWindow(false), 8000);
+      }
+      return newCount;
+    });
 
     // Check for habit chaining
     if (nextHabitId) {
@@ -135,6 +189,28 @@ function App() {
       subMessage: `请立即执行庆祝动作："${celebration}"`,
       emoji: '🎉'
     });
+  };
+
+  const handleBatchCheckIn = async (ids: string[]) => {
+    // Process all check-ins without individual confetti
+    for (const id of ids) {
+      await checkInHabit(id);
+    }
+
+    // Fire one big celebration!
+    fireConfetti();
+
+    setToast({
+      message: `✅ 已完成 ${ids.length} 个习惯！`,
+      subMessage: '习惯群落的力量！',
+      emoji: '🌟'
+    });
+
+    // Haptic
+    try {
+      const { Haptics, ImpactStyle } = await import('@capacitor/haptics');
+      await Haptics.impact({ style: ImpactStyle.Heavy });
+    } catch { }
   };
 
   // Handle failure with auto-scaling check
@@ -191,6 +267,35 @@ function App() {
         </button>
       </header>
 
+      {/* Today's Progress Bar */}
+      {habits.filter(h => !h.paused).length > 0 && (() => {
+        const today = new Date().toISOString().split('T')[0];
+        const activeHabits = habits.filter(h => !h.paused);
+        const checkedToday = activeHabits.filter(h => h.last_completed?.startsWith(today)).length;
+        const progress = Math.round((checkedToday / activeHabits.length) * 100);
+        return (
+          <div className="progress-bar-container" style={{
+            padding: '0.5rem 1.5rem',
+            background: 'rgba(99, 102, 241, 0.08)',
+            borderBottom: '1px solid rgba(99, 102, 241, 0.15)'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
+              <span style={{ fontSize: '0.85rem', color: '#94a3b8' }}>今日进度</span>
+              <span style={{ fontSize: '0.85rem', color: '#a78bfa', fontWeight: 600 }}>{checkedToday}/{activeHabits.length} ({progress}%)</span>
+            </div>
+            <div style={{ height: '6px', background: 'rgba(255,255,255,0.1)', borderRadius: '3px', overflow: 'hidden' }}>
+              <div style={{
+                width: `${progress}%`,
+                height: '100%',
+                background: progress === 100 ? 'linear-gradient(90deg, #10b981, #34d399)' : 'linear-gradient(90deg, #6366f1, #a78bfa)',
+                borderRadius: '3px',
+                transition: 'width 0.3s ease'
+              }} />
+            </div>
+          </div>
+        );
+      })()}
+
       {/* Weekly Review Banner (Sunday Evening) */}
       {showWeeklyBanner && (
         <div className="weekly-banner">
@@ -210,27 +315,20 @@ function App() {
       )}
 
       <main className="app-main full-width">
-        {/* Heatmap Section */}
-        <section className="heatmap-section">
-          <Suspense fallback={<div className="p-4 text-center text-gray-500">Loading heatmap...</div>}>
-            <Heatmap habits={habits} />
-          </Suspense>
-        </section>
-
         {/* Full Screen Dashboard */}
         <section className="dashboard-section">
           <HabitDashboard
             habits={habits.filter(h => !h.paused)}
             onDelete={deleteHabit}
-            onCheckIn={(id) => {
-              const h = habits.find(i => i.id === id);
-              handleCheckIn(id, h?.tiny_behavior || "Habit");
-            }}
+            onCheckIn={handleCheckIn}
+            onBatchCheckIn={handleBatchCheckIn}
             onFail={handleFail}
             onUpdate={updateHabit}
             onEvolve={evolveHabit}
             aspirations={aspirations}
             onSetChain={(id) => setChainModal({ isOpen: true, habitId: id })}
+            onAddHabit={handleQuickAdd}
+            onReorder={reorderHabits}
           />
         </section>
       </main>
@@ -239,7 +337,11 @@ function App() {
       <div className="fab-container">
         {isCreatorOpen && (
           <div className="fab-menu">
-            <button className="fab-item manual" onClick={() => { setIsManualOpen(true); setIsCreatorOpen(false); }}>
+            <button className="fab-item manual" onClick={() => {
+              setInitialAnchor(''); // clear when opening from FAB
+              setIsManualOpen(true);
+              setIsCreatorOpen(false);
+            }}>
               <Zap size={20} /> 快速添加
             </button>
             <button className="fab-item wizard" onClick={() => { setIsWizardOpen(true); setIsCreatorOpen(false); }}>
@@ -263,10 +365,14 @@ function App() {
 
       <ManualEntryModal
         isOpen={isManualOpen}
-        onClose={() => setIsManualOpen(false)}
+        onClose={() => {
+          setIsManualOpen(false);
+          setInitialAnchor(''); // reset on close
+        }}
         onSave={handleManualSave}
         aspirations={aspirations}
         onAddAspiration={addAspiration}
+        initialAnchor={initialAnchor}
       />
 
       {/* Wizard Modal Wrapper */}
@@ -351,6 +457,38 @@ function App() {
           }}
         />
       )}
+
+      {/* Achievement Toast */}
+      {newAchievement && (
+        <div className="achievement-toast">
+          <span className="emoji">{newAchievement.emoji}</span>
+          <div className="content">
+            <h3>🏆 成就解锁！</h3>
+            <p>{newAchievement.name} - {newAchievement.description}</p>
+          </div>
+        </div>
+      )}
+
+      {/* Golden Window Banner */}
+      {showGoldenWindow && (
+        <div className="golden-window-banner" onClick={() => { setIsManualOpen(true); setShowGoldenWindow(false); }}>
+          <span className="glow">✨</span>
+          <span>你的动机正在高峰！趁热添加新习惯？</span>
+          <span className="tap-hint">点击添加</span>
+        </div>
+      )}
+
+      {/* Environment Check Modal */}
+      <EnvironmentCheckModal
+        isOpen={envCheckModal.isOpen}
+        onClose={() => setEnvCheckModal({ isOpen: false, habitId: '', habitName: '', checklist: [] })}
+        onConfirm={() => {
+          handleCheckIn(envCheckModal.habitId, envCheckModal.habitName);
+          setEnvCheckModal({ isOpen: false, habitId: '', habitName: '', checklist: [] });
+        }}
+        habitName={envCheckModal.habitName}
+        checklist={envCheckModal.checklist}
+      />
 
     </div>
   )

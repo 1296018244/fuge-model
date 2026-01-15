@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Cloud, CheckCircle, Plus, Trash2, Check } from 'lucide-react';
-import { cloudSettings, cloudAIConfigs, getCloudCounts, cloudHabits } from '../hooks/supabaseStorage';
+import { cloudSettings, cloudAIConfigs, getCloudCounts, cloudHabits, cloudAspirations } from '../hooks/supabaseStorage';
 import type { AIConfig } from '../types';
 import './SettingsModal.css';
 
@@ -65,18 +65,49 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                 }
             };
 
-            const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `fogg_backup_${new Date().toLocaleDateString().replace(/\//g, '-')}.json`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
+            const jsonContent = JSON.stringify(backupData, null, 2);
+            const fileName = `fogg_backup_${new Date().toLocaleDateString().replace(/\//g, '-')}.json`;
+
+            // 检测是否在 Capacitor 环境中
+            const isCapacitor = typeof (window as any).Capacitor !== 'undefined';
+
+            if (isCapacitor) {
+                // 使用 Capacitor Filesystem + Share
+                const { Filesystem, Directory } = await import('@capacitor/filesystem');
+                const { Share } = await import('@capacitor/share');
+
+                // 写入文件到缓存目录
+                const result = await Filesystem.writeFile({
+                    path: fileName,
+                    data: jsonContent,
+                    directory: Directory.Cache,
+                    encoding: 'utf8' as any
+                });
+
+                // 使用系统分享
+                await Share.share({
+                    title: '福格行为数据备份',
+                    text: '导出的习惯数据',
+                    url: result.uri,
+                    dialogTitle: '分享备份文件'
+                });
+
+                alert('导出成功！请选择保存位置');
+            } else {
+                // 浏览器环境 - 使用传统下载方式
+                const blob = new Blob([jsonContent], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = fileName;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
         } catch (e) {
             console.error('Export failed:', e);
-            alert('导出失败');
+            alert('导出失败: ' + (e instanceof Error ? e.message : String(e)));
         } finally {
             setLoading(false);
         }

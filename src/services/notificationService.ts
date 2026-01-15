@@ -5,6 +5,7 @@ import type { Habit } from '../types/index';
 // Define Native Alarm Module
 interface AlarmModulePlugin {
     setAlarm(options: { timestamp: string, title: string, body: string, habitId: string, id: number }): Promise<void>;
+    cancelAlarm(options: { id: number }): Promise<void>;
 }
 const AlarmModule = registerPlugin<AlarmModulePlugin>('AlarmModule');
 
@@ -169,19 +170,21 @@ export const notificationService = {
 
     // 仅保留取消功能，用于清理
     async cancelReminder(habitId: string): Promise<void> {
-        // Native alarm doesn't have a direct "cancel" exposed in our simple module yet,
-        // but setting a new one overwrites. To truly cancel, we might need a cancel method in Java.
-        // For now, let's keep the LocalNotification cancel just in case proper plugin was used.
-        // TODO: Implement cancel in AlarmModule.java if needed.
         const notificationId = this.hashString(habitId);
         log(`Canceling notification ID: ${notificationId}`);
+
         try {
+            // Cancel Native Alarm
+            await AlarmModule.cancelAlarm({ id: notificationId });
+            log('Native Alarm cancel successful');
+
+            // Also try canceling LocalNotification just in case
             await LocalNotifications.cancel({
                 notifications: [{ id: notificationId }]
             });
-            log('Cancel successful');
+            log('Legacy LocalNotification cancel successful');
         } catch (e) {
-            log(`Cancel failed (may be normal): ${e}`);
+            log(`Cancel failed (may be normal if not set): ${e}`);
         }
     },
 

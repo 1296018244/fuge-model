@@ -1,0 +1,99 @@
+.ability-map {
+    background: rgba(30, 41, 59, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    padding: 1rem;
+    margin: 1rem 0;
+}
+
+.ability-map-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #e2e8f0;
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+.ability-map-header svg {
+    color: #a78bfa;
+}
+
+.ability-levels {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+
+.ability-level {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+.level-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+}
+
+.level-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+
+.level-name {
+    color: #94a3b8;
+}
+
+.level-count {
+    color: #64748b;
+    font-size: 0.75rem;
+    margin-left: auto;
+}
+
+.level-bar-container {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+    height: 6px;
+    overflow: hidden;
+}
+
+.level-bar {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.3s ease;
+    min-width: 2px;
+}
+
+.level-habits {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+    margin-top: 0.2rem;
+}
+
+.habit-chip {
+    background: rgba(255, 255, 255, 0.05);
+    color: #94a3b8;
+    font-size: 0.7rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: 6px;
+}
+
+.more-chip {
+    color: #64748b;
+    font-size: 0.7rem;
+    padding: 0.2rem 0.4rem;
+}
+
+.ability-tip {
+    margin: 1rem 0 0;
+    padding: 0.6rem;
+    background: rgba(168, 85, 247, 0.08);
+    border-radius: 8px;
+    font-size: 0.8rem;
+    color: #c4b5fd;
+}

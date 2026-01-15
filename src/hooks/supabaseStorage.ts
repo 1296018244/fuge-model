@@ -46,6 +46,9 @@ export const cloudHabits = {
             consecutive_failures: h.consecutive_failures || 0,
             scaled_versions: h.scaled_versions || [],
             next_habit_id: h.next_habit_id,
+            elastic_versions: h.elastic_versions,
+            last_completion_level: h.last_completion_level,
+            diagnosis_log: h.diagnosis_log || [],
         }));
     },
 
@@ -76,6 +79,9 @@ export const cloudHabits = {
                 consecutive_failures: habit.consecutive_failures,
                 scaled_versions: habit.scaled_versions,
                 next_habit_id: habit.next_habit_id,
+                elastic_versions: habit.elastic_versions,
+                last_completion_level: habit.last_completion_level,
+                diagnosis_log: habit.diagnosis_log,
             }, { onConflict: 'id' });
 
         if (error) {
@@ -115,6 +121,9 @@ export const cloudHabits = {
                 consecutive_failures: h.consecutive_failures,
                 scaled_versions: h.scaled_versions,
                 next_habit_id: h.next_habit_id,
+                elastic_versions: h.elastic_versions,
+                last_completion_level: h.last_completion_level,
+                diagnosis_log: h.diagnosis_log,
             })), { onConflict: 'id' });
 
         if (error) {

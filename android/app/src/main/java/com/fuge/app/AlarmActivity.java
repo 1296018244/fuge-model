@@ -36,79 +36,107 @@ public class AlarmActivity extends AppCompatActivity {
                             WindowManager.LayoutParams.FLAG_ALLOW_LOCK_WHILE_SCREEN_ON);
         }
 
-        // Setup UI Programmatically to avoid XML
+        // Modern Dark Theme UI
         LinearLayout layout = new LinearLayout(this);
         layout.setOrientation(LinearLayout.VERTICAL);
         layout.setGravity(Gravity.CENTER);
-        layout.setBackgroundColor(0xFF000000); // Black background
-        layout.setPadding(50, 50, 50, 50);
+        // Deep blue-black background (Slate 950-ish)
+        layout.setBackgroundColor(0xFF0F172A);
+        layout.setPadding(60, 60, 60, 60);
 
         String titleText = getIntent().getStringExtra("title");
         String bodyText = getIntent().getStringExtra("body");
+        // Remove alarm from prefs since it has rung (so it doesn't auto-restore if boot
+        // loop)
+        // Ideally we keep it until dismissed, but for now assuming ring = consumed.
+        // Actually, if we crash here, we might want it back. But let's leave it for
+        // now.
+        int id = getIntent().getIntExtra("id", 0);
+        removeAlarmFromPrefs(this, id);
+
+        // Icon or Top Decoration
+        TextView iconView = new TextView(this);
+        iconView.setText("🔔");
+        iconView.setTextSize(64);
+        iconView.setGravity(Gravity.CENTER);
+        iconView.setPadding(0, 0, 0, 40);
+        layout.addView(iconView);
 
         TextView title = new TextView(this);
-        title.setText(titleText != null ? titleText : "Alarm");
-        title.setTextSize(32);
-        title.setTextColor(0xFFFFFFFF);
+        title.setText(titleText != null ? titleText : "微习惯提醒");
+        title.setTextSize(28);
+        title.setTypeface(null, android.graphics.Typeface.BOLD);
+        title.setTextColor(0xFFF1F5F9); // Slate 100
         title.setGravity(Gravity.CENTER);
         layout.addView(title);
 
         TextView body = new TextView(this);
-        body.setText(bodyText != null ? bodyText : "Time to act!");
-        body.setTextSize(20);
-        body.setTextColor(0xFFCCCCCC);
+        body.setText(bodyText != null ? bodyText : "该行动了！小习惯，大改变。");
+        body.setTextSize(18);
+        body.setTextColor(0xFF94A3B8); // Slate 400
         body.setGravity(Gravity.CENTER);
-        body.setPadding(0, 20, 0, 50);
+        body.setPadding(0, 20, 0, 80);
         layout.addView(body);
 
-        // Initialize AlarmModule for snooze functionality
-        AlarmModule alarmModule = new AlarmModule();
-
+        // Buttons Container
         LinearLayout buttonContainer = new LinearLayout(this);
-        buttonContainer.setOrientation(LinearLayout.HORIZONTAL);
+        buttonContainer.setOrientation(LinearLayout.VERTICAL);
         buttonContainer.setGravity(Gravity.CENTER);
-        buttonContainer.setPadding(0, 40, 0, 0);
+        buttonContainer.setPadding(0, 20, 0, 0);
 
-        // Snooze Button Style
+        // Snooze Button
         android.graphics.drawable.GradientDrawable snoozeBg = new android.graphics.drawable.GradientDrawable();
         snoozeBg.setShape(android.graphics.drawable.GradientDrawable.RECTANGLE);
-        snoozeBg.setColor(0x20EAB308); // Semi-transparent yellow
-        snoozeBg.setStroke(2, 0xFFEAB308); // Yellow border
-        snoozeBg.setCornerRadius(16);
+        snoozeBg.setColor(0x20EAB308); // Transparent Yellow
+        snoozeBg.setStroke(3, 0xFFEAB308); // Yellow Border
+        snoozeBg.setCornerRadius(24);
 
         Button snoozeBtn = new Button(this);
-        snoozeBtn.setText("稍后提醒 (5m)");
-        snoozeBtn.setTextSize(18);
-        snoozeBtn.setPadding(40, 20, 40, 20);
+        snoozeBtn.setText("💤 稍后提醒 (5分钟)");
+        snoozeBtn.setTextSize(16);
+        snoozeBtn.setPadding(60, 30, 60, 30);
         snoozeBtn.setTextColor(0xFFEAB308);
         snoozeBtn.setBackground(snoozeBg);
+        snoozeBtn.setOnClickListener(v -> snoozeAlarm());
 
-        // Add margin between buttons
-        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.WRAP_CONTENT,
+        LinearLayout.LayoutParams snoozeParams = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT);
-        params.setMargins(0, 0, 30, 0);
-        snoozeBtn.setLayoutParams(params);
-
-        snoozeBtn.setOnClickListener(v -> {
-            snoozeAlarm();
-        });
+        snoozeParams.setMargins(0, 0, 0, 40);
+        snoozeBtn.setLayoutParams(snoozeParams);
         buttonContainer.addView(snoozeBtn);
 
+        // Dismiss Button (Primary Action)
+        android.graphics.drawable.GradientDrawable dismissBg = new android.graphics.drawable.GradientDrawable();
+        dismissBg.setShape(android.graphics.drawable.GradientDrawable.RECTANGLE);
+        dismissBg.setColor(0xFF22C55E); // Green 500
+        dismissBg.setCornerRadius(24);
+
         Button dismissBtn = new Button(this);
-        dismissBtn.setText("完成 habit");
-        dismissBtn.setTextSize(20);
-        dismissBtn.setPadding(30, 20, 30, 20);
+        dismissBtn.setText("✨ 完成习惯");
+        dismissBtn.setTextSize(18);
+        dismissBtn.setTypeface(null, android.graphics.Typeface.BOLD);
+        dismissBtn.setPadding(60, 35, 60, 35);
         dismissBtn.setTextColor(0xFFFFFFFF);
-        dismissBtn.setBackgroundColor(0x00000000); // Transparent
+        dismissBtn.setBackground(dismissBg);
+
+        // Add subtle shadow effect or elevation if possible (API 21+)
+        dismissBtn.setElevation(8f);
+
         dismissBtn.setOnClickListener(v -> {
             stopAlarmService();
+            // TODO: Ideally we could trigger a "Mark Done" intent to the main app here?
+            // For now just close, user opens app to check.
             finish();
         });
+
+        LinearLayout.LayoutParams dismissParams = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT);
+        dismissBtn.setLayoutParams(dismissParams);
         buttonContainer.addView(dismissBtn);
 
         layout.addView(buttonContainer);
-
         setContentView(layout);
     }
 
@@ -124,11 +152,8 @@ public class AlarmActivity extends AppCompatActivity {
         String habitId = getIntent().getStringExtra("habitId");
         int id = getIntent().getIntExtra("id", 0);
 
-        // Reschedule using AlarmModule logic (simplified inline here or reusing module)
-        // Since we are in Java/Android Native side, we can direct call AlarmManager
-        // logic or reuse AlarmModule if static.
-        // AlarmModule methods are not static. Let's replicate the scheduling logic
-        // simply here.
+        // PERSISTENCE FIX: Save to SharedPreferences so it survives reboot
+        saveAlarmToPrefs(this, id, triggerAtMillis, title, body, habitId);
 
         Intent intent = new Intent(this, AlarmReceiver.class);
         intent.setAction("ALARM_TRIGGER");
@@ -145,12 +170,19 @@ public class AlarmActivity extends AppCompatActivity {
 
         android.app.AlarmManager alarmManager = (android.app.AlarmManager) getSystemService(Context.ALARM_SERVICE);
         if (alarmManager != null) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && !alarmManager.canScheduleExactAlarms()) {
-                // Fallback if permission lost, though unlikely in this flow
-                alarmManager.setAndAllowWhileIdle(android.app.AlarmManager.RTC_WAKEUP, triggerAtMillis, pendingIntent);
-            } else {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                if (!alarmManager.canScheduleExactAlarms()) {
+                    alarmManager.setAndAllowWhileIdle(android.app.AlarmManager.RTC_WAKEUP, triggerAtMillis,
+                            pendingIntent);
+                } else {
+                    alarmManager.setExactAndAllowWhileIdle(android.app.AlarmManager.RTC_WAKEUP, triggerAtMillis,
+                            pendingIntent);
+                }
+            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 alarmManager.setExactAndAllowWhileIdle(android.app.AlarmManager.RTC_WAKEUP, triggerAtMillis,
                         pendingIntent);
+            } else {
+                alarmManager.setExact(android.app.AlarmManager.RTC_WAKEUP, triggerAtMillis, pendingIntent);
             }
         }
 
@@ -163,13 +195,62 @@ public class AlarmActivity extends AppCompatActivity {
         startService(intent);
     }
 
+    private void saveAlarmToPrefs(Context context, int id, long time, String title, String body, String habitId) {
+        try {
+            android.content.SharedPreferences prefs = context.getSharedPreferences("FugeAlarmPrefs",
+                    Context.MODE_PRIVATE);
+            String existingJson = prefs.getString("saved_alarms", "[]");
+            org.json.JSONArray alarms = new org.json.JSONArray(existingJson);
+
+            // Remove existing same ID to avoid duplicates
+            org.json.JSONArray updated = new org.json.JSONArray();
+            for (int i = 0; i < alarms.length(); i++) {
+                org.json.JSONObject alarm = alarms.getJSONObject(i);
+                if (alarm.getInt("id") != id) {
+                    updated.put(alarm);
+                }
+            }
+
+            // Add new alarm
+            org.json.JSONObject newAlarm = new org.json.JSONObject();
+            newAlarm.put("id", id);
+            newAlarm.put("time", time);
+            newAlarm.put("title", title);
+            newAlarm.put("body", body);
+            newAlarm.put("habitId", habitId);
+            updated.put(newAlarm);
+
+            prefs.edit().putString("saved_alarms", updated.toString()).apply();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void removeAlarmFromPrefs(Context context, int id) {
+        try {
+            android.content.SharedPreferences prefs = context.getSharedPreferences("FugeAlarmPrefs",
+                    Context.MODE_PRIVATE);
+            String existingJson = prefs.getString("saved_alarms", "[]");
+            org.json.JSONArray alarms = new org.json.JSONArray(existingJson);
+
+            org.json.JSONArray updated = new org.json.JSONArray();
+            for (int i = 0; i < alarms.length(); i++) {
+                org.json.JSONObject alarm = alarms.getJSONObject(i);
+                if (alarm.getInt("id") != id) {
+                    updated.put(alarm);
+                }
+            }
+
+            prefs.edit().putString("saved_alarms", updated.toString()).apply();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        // Optional: stop service if activity is destroyed (e.g. back button)
-        // For alarm, usually better to force user to click Dismiss, but standard
-        // behavior
-        // is closing the UI might allow the alarm to snooze or stop.
-        // Let's stop it to be safe and avoid endless ringing if user force-closes UI.
+        // Ensure alarm sound stops if activity is forced closed
+        stopAlarmService();
     }
 }
